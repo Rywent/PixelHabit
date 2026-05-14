@@ -18,7 +18,9 @@ import com.rywent.pixelhabit.presentation.components.MainBottomNavigationBar
 import com.rywent.pixelhabit.presentation.navigation.AppNavigation
 import com.rywent.pixelhabit.presentation.navigation.isMainRoute
 import com.rywent.pixelhabit.ui.theme.PixelHabitTheme
+import dagger.hilt.android.AndroidEntryPoint  // ← Добавь этот импорт
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
