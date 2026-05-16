@@ -39,7 +39,7 @@ fun WelcomeHeader(
                     )
                 ),
                 fontWeight = FontWeight.Bold,
-                fontSize = 55.sp,
+                fontSize = 48.sp,
                 lineHeight = 10.sp
             ),
             color = MaterialTheme.colorScheme.onSurface
@@ -58,7 +58,7 @@ fun WelcomeHeader(
                     )
                 ),
                 fontWeight = FontWeight.Black,
-                fontSize = 55.sp,
+                fontSize = 48.sp,
                 lineHeight = 10.sp
             ),
             color = MaterialTheme.colorScheme.onSurface
