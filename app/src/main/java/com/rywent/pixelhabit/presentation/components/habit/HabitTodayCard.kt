@@ -37,6 +37,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rywent.pixelhabit.presentation.components.customElements.RoundedCheckbox
+import com.rywent.pixelhabit.presentation.screens.home.components.luminance
+import com.rywent.pixelhabit.ui.theme.adaptiveShadowColor
 
 
 @Composable
@@ -50,12 +52,18 @@ fun HabitTodayCard(
     onTodayHabitClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
-
+    val shadowColor = adaptiveShadowColor()
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .shadow(elevation = 4.dp, shape = RoundedCornerShape(30.dp))
+            .shadow(
+                elevation = 8.dp,
+                shape = RoundedCornerShape(30.dp),
+                clip = false,
+                ambientColor = shadowColor,
+                spotColor = shadowColor
+            )
             .clip(RoundedCornerShape(30.dp))
             .background(
                 Brush.linearGradient(
@@ -63,8 +71,8 @@ fun HabitTodayCard(
                     end = Offset(0f, Float.POSITIVE_INFINITY),
                     colors = listOf(
                         scheme.surfaceContainerHighest,
-                        scheme.surfaceContainer,
-                        scheme.surfaceContainerHigh
+                        scheme.surfaceContainerHigh.copy(alpha = 0.8f),
+                        scheme.surfaceContainer
                     )
                 )
             )
@@ -129,7 +137,7 @@ fun HabitTodayCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "$streak${if (streak > 1) "d" else "d"}",
+                        text = "$streak d",
                         color = Color(0xFFCE9428),
                         fontWeight = FontWeight.Bold,
                         fontSize = 10.sp

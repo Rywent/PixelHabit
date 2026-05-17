@@ -1,6 +1,6 @@
 package com.rywent.pixelhabit.presentation.screens.home.components
 
-import android.graphics.Color
+import androidx.compose.ui.graphics.Color
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.rywent.pixelhabit.ui.theme.adaptiveShadowColor
 import androidx.compose.ui.graphics.Color as ComposeColor
 
 @Composable
@@ -42,11 +43,7 @@ fun WeekStatistics(
     onWeekClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-
+    val scheme = MaterialTheme.colorScheme
     val animatedProgress = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
@@ -63,33 +60,32 @@ fun WeekStatistics(
         start = Offset(Float.POSITIVE_INFINITY, 0f),
         end = Offset(0f, Float.POSITIVE_INFINITY),
         colors = listOf(
-            MaterialTheme.colorScheme.surfaceContainerHighest,
-            MaterialTheme.colorScheme.surfaceContainer,
-            MaterialTheme.colorScheme.surfaceContainerLowest
+            scheme.surfaceContainerHighest,
+            scheme.surfaceContainerHigh.copy(alpha = 0.8f),
+            scheme.surfaceContainer
         )
     )
+
+    val shadowColor = adaptiveShadowColor()
+
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(16.dp),
-                clip = false
-            )
             .clip(RoundedCornerShape(16.dp))
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(16.dp),
+                clip = false,
+                ambientColor = shadowColor,
+                spotColor = shadowColor
+            )
             .background(gradientBrush)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    if (isDark) {
-                        MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.9f)
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.9f)
-                    }
-                )
+                .background(scheme.surfaceContainerLow)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -97,35 +93,21 @@ fun WeekStatistics(
             Text(
                 text = "Week statistics",
                 style = MaterialTheme.typography.titleMedium,
-                color = if (isDark) {
-                    ComposeColor.White.copy(alpha = 0.95f)
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                }
+                color = scheme.onSurface
             )
 
             Box(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(
-                        if (isDark) {
-                            ComposeColor.White.copy(alpha = 0.15f)
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainerHigh
-                        }
-                    )
+                    .background(scheme.primaryContainer.copy(alpha = 0.3f))
                     .clickable(onClick = onWeekClick),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Rounded.ArrowForwardIos,
                     contentDescription = "Open week details",
-                    tint = if (isDark) {
-                        ComposeColor.White.copy(alpha = 0.9f)
-                    } else {
-                        onSurfaceVariant
-                    },
+                    tint = scheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -164,8 +146,8 @@ fun WeekStatistics(
                                 .background(
                                     Brush.verticalGradient(
                                         colors = listOf(
-                                            primaryColor,
-                                            primaryColor.copy(alpha = 0.6f)
+                                            scheme.primary,
+                                            scheme.primary.copy(alpha = 0.4f)
                                         )
                                     )
                                 )
@@ -176,11 +158,7 @@ fun WeekStatistics(
                         Text(
                             text = day.shortName,
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (isDark) {
-                                ComposeColor.White.copy(alpha = 0.7f)
-                            } else {
-                                onSurfaceVariant
-                            },
+                            color = scheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
                     }

@@ -66,7 +66,40 @@ class HomeViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun getTodayHabits() : List<TodayHabitData>{
-        return emptyList()
+        return listOf(
+            TodayHabitData(
+                id = "habit_1",
+                name = "Morning Run & Stretch",
+                description = "Running 5 km every day + full body stretching for 10 minutes",
+                streak = 5,
+                icon = Icons.Rounded.DirectionsRun,
+                isCompleted = true
+            ),
+            TodayHabitData(
+                id = "habit_2",
+                name = "Read 30 Pages",
+                description = "Read at least 30 pages of non-fiction book before bed",
+                streak = 12,
+                icon = Icons.Rounded.MenuBook,
+                isCompleted = false
+            ),
+            TodayHabitData(
+                id = "habit_3",
+                name = "Meditation & Breathing",
+                description = "10 minutes of mindfulness meditation with deep breathing exercises",
+                streak = 3,
+                icon = Icons.Rounded.SelfImprovement,
+                isCompleted = true
+            ),
+            TodayHabitData(
+                id = "habit_4",
+                name = "Drink 2L Water",
+                description = "Track and drink at least 2 liters of water throughout the day",
+                streak = 21,
+                icon = Icons.Rounded.WaterDrop,
+                isCompleted = false
+            )
+        )
     }
 
     private fun getWeekStatistics() : List<DayStat> {

@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rywent.pixelhabit.ui.theme.adaptiveStandoutShadowColor
 
 
 @Composable
@@ -41,15 +42,14 @@ fun StreakCard(
     modifier: Modifier = Modifier,
     onStreakClick: () -> Unit = {}
 ) {
-
     val scheme = MaterialTheme.colorScheme
+    val shadowColor = adaptiveStandoutShadowColor()
 
     Box(
         modifier = modifier
             .size(width = 290.dp, height = 240.dp),
         contentAlignment = Alignment.Center
     ) {
-
         Box(
             modifier = Modifier
                 .width(270.dp)
@@ -57,20 +57,23 @@ fun StreakCard(
                 .graphicsLayer {
                     rotationZ = -36f
                 }
-                 .shadow(
-                    elevation = 24.dp,
-                    shape = RoundedCornerShape(110.dp)
+                .shadow(
+                    elevation = 12.dp,
+                    shape = RoundedCornerShape(100.dp),
+                    clip = false,
+                    ambientColor = shadowColor,
+                    spotColor = shadowColor
                 )
-                .clip(RoundedCornerShape(70.dp))
+                .clip(RoundedCornerShape(100.dp))
                 .background(
                     Brush.linearGradient(
-                        listOf(
-                            scheme.primary.copy(alpha = 0.15f),
-                            scheme.surfaceContainerHigh,
-                            scheme.surfaceContainerHighest
-                        ),
                         start = Offset(Float.POSITIVE_INFINITY, 0f),
-                        end = Offset(0f, Float.POSITIVE_INFINITY)
+                        end = Offset(0f, Float.POSITIVE_INFINITY),
+                        colors = listOf(
+                            scheme.surfaceContainerHigh,
+                            scheme.surfaceContainerHighest,
+                            scheme.surfaceContainerLow
+                        )
                     )
                 )
         )
@@ -81,13 +84,9 @@ fun StreakCard(
             tint = scheme.primary,
             modifier = Modifier
                 .size(115.dp)
-                .offset(
-                    x = (-35).dp,
-                    y = 28.dp
-                )
+                .offset(x = (-35).dp, y = 28.dp)
         )
 
-        // NUMBER
         Text(
             text = currentStreak.toString(),
             color = scheme.primary,
@@ -98,11 +97,8 @@ fun StreakCard(
             softWrap = false,
             modifier = Modifier
                 .width(130.dp)
-                .offset(
-                    x = 40.dp,
-                    y = (-20).dp)
+                .offset(x = 40.dp, y = (-20).dp)
                 .wrapContentWidth(Alignment.CenterHorizontally)
         )
     }
 }
-

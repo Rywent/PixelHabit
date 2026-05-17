@@ -25,7 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.rywent.pixelhabit.ui.theme.adaptiveShadowColor
 
 
 @Composable
@@ -34,6 +37,8 @@ fun HeaderButtons(
     onClickAppVersion: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val scheme = MaterialTheme.colorScheme
+    val shadowColor = adaptiveShadowColor()
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -44,9 +49,16 @@ fun HeaderButtons(
         FilledTonalButton(
             onClick = onClickAppVersion,
             shape = RoundedCornerShape(50.dp),
+            modifier = Modifier.shadow(
+                elevation = 3.dp,
+                shape = RoundedCornerShape(50.dp),
+                clip = false,
+                ambientColor = shadowColor,
+                spotColor = shadowColor
+            ),
             colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                containerColor = scheme.surfaceContainer,
+                contentColor = scheme.onSurfaceVariant
             )
         ) {
             Icon(
@@ -62,9 +74,16 @@ fun HeaderButtons(
             onClick = onClickSettings,
             shape = RoundedCornerShape(50.dp),
             contentPadding = PaddingValues(12.dp),
+            modifier = Modifier.shadow(
+                elevation = 3.dp,
+                shape = RoundedCornerShape(50.dp),
+                clip = false,
+                ambientColor = shadowColor,
+                spotColor = shadowColor
+            ),
             colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                containerColor = scheme.surfaceContainer,
+                contentColor = scheme.onSurfaceVariant
             )
         ) {
             Icon(

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Coffee
 import androidx.compose.material.icons.outlined.EmojiObjects
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,9 +28,9 @@ fun NoHabitsToday(){
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
-            imageVector = Icons.Outlined.EmojiObjects,
+            imageVector = Icons.Outlined.Coffee,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
             modifier = Modifier.size(80.dp)
         )
 

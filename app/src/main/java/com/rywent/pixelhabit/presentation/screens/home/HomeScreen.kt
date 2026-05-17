@@ -40,7 +40,6 @@ import androidx.navigation.NavController
 import com.rywent.pixelhabit.R
 import com.rywent.pixelhabit.presentation.components.habit.HabitTodayCard
 import com.rywent.pixelhabit.presentation.screens.home.components.AddHabitButton
-import com.rywent.pixelhabit.presentation.screens.home.components.DayStat
 import com.rywent.pixelhabit.presentation.screens.home.components.HeaderButtons
 import com.rywent.pixelhabit.presentation.screens.home.components.NoHabitsToday
 import com.rywent.pixelhabit.presentation.screens.home.components.StreakCard
