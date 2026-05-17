@@ -30,8 +30,12 @@ class HomeViewModel @Inject constructor() : ViewModel() {
 
     }
 
-    fun onCalendarClicked() {
+    fun onAboutClicked() {
+        _uiState.update { it.copy(showAboutSheet = true) }
+    }
 
+    fun onDismissAbout() {
+        _uiState.update { it.copy(showAboutSheet = false) }
     }
 
     fun onAddHabit(){
@@ -42,6 +46,10 @@ class HomeViewModel @Inject constructor() : ViewModel() {
         val habit = _uiState.value.todayHabits.find { it.id == id }
 
     }
+    fun onToggleExpandTodayHabits() {
+        _uiState.update { it.copy(isTodayHabitsExpanded = !it.isTodayHabitsExpanded) }
+    }
+
     fun onHabitCheckboxClicked(id: String, isCompleted: Boolean) {
         _uiState.update { currentState ->
             currentState.copy(

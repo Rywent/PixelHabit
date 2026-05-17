@@ -9,5 +9,7 @@ data class HomeUiState(
     val currentDate: String = "",
     val currentStreak: Int = 0,
     val weekStat: List<DayStat> = emptyList(),
-    val todayHabits: List<TodayHabitData> = emptyList()
+    val todayHabits: List<TodayHabitData> = emptyList(),
+    val isTodayHabitsExpanded: Boolean = false,
+    val showAboutSheet: Boolean = false
 )
