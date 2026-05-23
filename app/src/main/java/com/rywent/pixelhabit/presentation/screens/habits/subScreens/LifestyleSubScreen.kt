@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.rywent.pixelhabit.presentation.screens.habits.HabitsUISate
 import com.rywent.pixelhabit.presentation.screens.habits.components.LifestyleCard
+import com.rywent.pixelhabit.presentation.screens.habits.components.NoLifestyle
 
 
 @Composable
@@ -17,16 +18,19 @@ fun LifestyleSubScreen(
     uiState: HabitsUISate,
     modifier: Modifier = Modifier
 ) {
-    Column {
-        uiState.lifestyles.forEach { lifestyle ->
-            LifestyleCard(
-                modifier = modifier.padding(bottom = 12.dp),
-                lifestyle = lifestyle,
-                {
-                    navigateToLifestyleDetails(lifestyle.id)
-                },
-                {}
-            )
+    Column(modifier = modifier) {
+        if (uiState.lifestyles.isEmpty()) {
+            NoLifestyle()
+        } else {
+            uiState.lifestyles.forEach { lifestyle ->
+                LifestyleCard(
+                    modifier = Modifier.padding(bottom = 12.dp),
+                    lifestyle = lifestyle,
+                    onClick = {
+                        navigateToLifestyleDetails(lifestyle.id)
+                    }
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(80.dp))

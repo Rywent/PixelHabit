@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.rywent.pixelhabit.presentation.components.habit.HabitCard
 import com.rywent.pixelhabit.presentation.components.habit.HabitData
 import com.rywent.pixelhabit.presentation.screens.habits.HabitsUISate
+import com.rywent.pixelhabit.presentation.screens.habits.components.NoHabits
 import com.rywent.pixelhabit.presentation.screens.habits.components.StatisticsSection
 
 @Composable
@@ -34,9 +35,7 @@ fun HabitsSubScreen(
     uiState: HabitsUISate,
     modifier: Modifier = Modifier
 ) {
-
-
-    Column() {
+    Column(modifier = modifier) {
         StatisticsSection(
             completionRate = uiState.completionRate,
             totalHabitCount = uiState.totalHabitCount,
@@ -45,15 +44,18 @@ fun HabitsSubScreen(
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        uiState.allHabits.forEach { habit ->
-            HabitCard(
-                habit = habit,
-                onClick = {
-                    navigateToHabitDetails(habit.id)
-                },
-                modifier = Modifier
-                    .padding(bottom = 12.dp)
-            )
+        if (uiState.allHabits.isEmpty()) {
+            NoHabits()
+        } else {
+            uiState.allHabits.forEach { habit ->
+                HabitCard(
+                    habit = habit,
+                    onClick = {
+                        navigateToHabitDetails(habit.id)
+                    },
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(80.dp))
