@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -128,21 +129,21 @@ fun HabitCard(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // tag
-                        if (habit.tagName.isNotEmpty()) {
+                        if (habit.lifestyleName.isNotEmpty()) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                habit.tagIcon?.let {
+                                habit.lifestyleIcon?.let {
                                     Icon(
                                         imageVector = it,
                                         contentDescription = null,
-                                        tint = habit.tagColor,
+                                        tint = habit.lifestyleColor,
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                 }
                                 Text(
-                                    text = habit.tagName,
+                                    text = habit.lifestyleName,
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = habit.tagColor,
+                                    color = habit.lifestyleColor,
                                     fontWeight = FontWeight.Medium
                                 )
                             }
@@ -183,8 +184,9 @@ fun HabitCard(
 
                 // bottom section
                 if (habit.weeklyGoal > 0) {
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 20.dp),
+                        thickness = DividerDefaults.Thickness,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                     )
 
@@ -223,9 +225,9 @@ data class HabitData(
     val frequency: String,
     val timeOfDay: String,
     val timeOfDayIcon: ImageVector,
-    val tagName: String,
-    val tagColor: Color,
-    val tagIcon: ImageVector?,
+    val lifestyleName: String,
+    val lifestyleColor: Color,
+    val lifestyleIcon: ImageVector?,
     val weeklyProgress: Float,
     val weeklyDone: Int,
     val weeklyGoal: Int,

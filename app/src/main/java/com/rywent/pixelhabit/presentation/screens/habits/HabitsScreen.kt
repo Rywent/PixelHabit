@@ -42,6 +42,7 @@ import com.rywent.pixelhabit.presentation.components.customElements.CustomCircul
 import com.rywent.pixelhabit.presentation.navigation.Screen
 import com.rywent.pixelhabit.presentation.screens.habits.components.HabitsTabSwitcher
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.HabitsSubScreen
+import com.rywent.pixelhabit.presentation.screens.habits.subScreens.LifestyleSubScreen
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.subTabTransitionSpec
 
 @Composable
@@ -110,15 +111,12 @@ fun HabitsScreen(
                                 },
                                 uiState
                             )
-                            1 -> Box(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                CustomCircularProgress(
-                                    progress = 0.75f,
-                                    size = 210.dp,
-                                    strokeWidth = 24.dp
-                                )
-                            }
+                            1 -> LifestyleSubScreen(
+                                navigateToLifestyleDetails = {lifestyleId ->
+                                    viewModel.onLifestyleClick(lifestyleId)
+                                },
+                                uiState
+                            )
                             2 -> Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -126,7 +124,7 @@ fun HabitsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Quests Screen Content",
+                                    text = "Quests Screen",
                                     style = MaterialTheme.typography.headlineMedium
                                 )
                             }
