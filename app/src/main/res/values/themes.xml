@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.PixelHabit" parent="android:Theme.Material.Light.NoActionBar" />
-    
+    <style name="Theme.PixelHabit" parent="Theme.SplashScreen">
+        <item name="postSplashScreenTheme">@style/Theme.PixelHabit.Main</item>
+
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/splash_background</item>
+
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.PixelHabit.Main" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+
 </resources>

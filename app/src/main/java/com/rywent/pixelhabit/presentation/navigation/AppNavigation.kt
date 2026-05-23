@@ -215,5 +215,7 @@ fun AppNavigation(
         ) {
             JournalScreen(navController, paddingValues)
         }
+
+
     }
 }

@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,7 +44,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,6 +70,8 @@ fun HabitTodayCard(
 ) {
     val scheme = MaterialTheme.colorScheme
     val shadowColor = adaptiveShadowColor()
+    val hapticFeedback = LocalHapticFeedback.current
+    val hasReachedThreshold = remember { mutableStateOf(false) }
 
     val swipeBackgroundColor = if (isCompleted) {
         scheme.errorContainer.copy(alpha = 0.4f)
@@ -145,16 +150,24 @@ fun HabitTodayCard(
                 .pointerInput(isCompleted) {
                     detectHorizontalDragGestures(
                         onDragEnd = {
-                            if (offsetX < -swipeThreshold) {
+                            if (offsetX <= -swipeThreshold) {
                                 onCheckedChange(!isCompleted)
                             }
                             offsetX = 0f
+                            hasReachedThreshold.value = false
                         },
                         onDragCancel = {
                             offsetX = 0f
+                            hasReachedThreshold.value = false
                         },
                         onHorizontalDrag = { _, dragAmount ->
-                            offsetX = (offsetX + dragAmount).coerceIn(-swipeThreshold * 1.5f, 0f)
+                            val newOffset = (offsetX + dragAmount).coerceIn(-swipeThreshold * 1.5f, 0f)
+                            offsetX = newOffset
+
+                            if (newOffset <= -swipeThreshold && !hasReachedThreshold.value) {
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                hasReachedThreshold.value = true
+                            }
                         }
                     )
                 },
@@ -164,7 +177,10 @@ fun HabitTodayCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .clickable { onCheckedChange(!isCompleted) },
+                    .clickable (){
+                        onCheckedChange(!isCompleted)
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 RoundedCheckbox(
