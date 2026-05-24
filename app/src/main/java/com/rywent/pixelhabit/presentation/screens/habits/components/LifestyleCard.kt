@@ -6,10 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,8 +27,7 @@ import com.rywent.pixelhabit.ui.theme.adaptiveShadowColor
 fun LifestyleCard(
     modifier: Modifier = Modifier,
     lifestyle: LifestyleData,
-    onClick: () -> Unit,
-    onDelete: (() -> Unit)? = null
+    onClick: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
     val shadowColor = adaptiveShadowColor()
@@ -39,14 +35,14 @@ fun LifestyleCard(
 
     Card(
         modifier = modifier
-            .fillMaxWidth()
+            .aspectRatio(0.85f)
             .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(32.dp),
+                elevation = 8.dp,
+                shape = RoundedCornerShape(28.dp),
                 spotColor = shadowColor.copy(alpha = 0.5f),
                 ambientColor = shadowColor.copy(alpha = 0.3f)
             ),
-        shape = RoundedCornerShape(32.dp),
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
@@ -54,6 +50,7 @@ fun LifestyleCard(
     ) {
         Box(
             modifier = Modifier
+                .fillMaxSize()
                 .clickable(
                     interactionSource = interactionSource,
                     indication = ripple(
@@ -67,17 +64,19 @@ fun LifestyleCard(
                 )
         ) {
             Column(
-                modifier = Modifier.padding(20.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
-                // Top row with icon, title and delete button
+                // Top row with icon, category and delete button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Icon container with custom color
                     Box(
                         modifier = Modifier
-                            .size(64.dp)
+                            .size(52.dp)
                             .clip(CircleShape)
                             .background(lifestyle.iconColor.copy(alpha = 0.12f)),
                         contentAlignment = Alignment.Center
@@ -86,100 +85,67 @@ fun LifestyleCard(
                             imageVector = lifestyle.icon,
                             contentDescription = null,
                             tint = lifestyle.iconColor,
-                            modifier = Modifier.size(34.dp)
+                            modifier = Modifier.size(28.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(20.dp))
-
-                    // Title and description
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .align(Alignment.CenterVertically)
-                    ) {
-                        Text(
-                            text = lifestyle.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        if (lifestyle.description.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = lifestyle.description,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                lineHeight = 20.sp
-                            )
-                        }
-                    }
-
-                    // Delete button
-                    if (onDelete != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        IconButton(
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onDelete()
-                            },
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Close,
-                                contentDescription = "Delete",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-                }
-
-                // Category or status indicator at the bottom
-                if (lifestyle.category.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    HorizontalDivider(
-                        Modifier,
-                        DividerDefaults.Thickness,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Category badge
+                    // Category badge
+                    if (lifestyle.category.isNotEmpty()) {
+                        Spacer(modifier = Modifier.width(10.dp))
                         Surface(
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(10.dp),
                             color = lifestyle.iconColor.copy(alpha = 0.1f)
                         ) {
                             Text(
                                 text = lifestyle.category,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = lifestyle.iconColor,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-
-                        // Date added
-                        if (lifestyle.createdDate.isNotEmpty()) {
-                            Text(
-                                text = lifestyle.createdDate,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                color = lifestyle.iconColor,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Title
+                Text(
+                    text = lifestyle.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                // Description
+                if (lifestyle.description.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = lifestyle.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 18.sp
+                    )
+                }
+
+                // Date at bottom-left
+                if (lifestyle.createdDate.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = lifestyle.createdDate,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Start
+                    )
                 }
             }
         }
