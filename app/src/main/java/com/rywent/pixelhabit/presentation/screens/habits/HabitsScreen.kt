@@ -1,137 +1,160 @@
 package com.rywent.pixelhabit.presentation.screens.habits
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.rywent.pixelhabit.presentation.components.customElements.CustomCircularProgress
-import com.rywent.pixelhabit.presentation.navigation.Screen
+import com.rywent.pixelhabit.presentation.components.customElements.AddItemButton
+import com.rywent.pixelhabit.presentation.components.panels.CreateHabitPanel
 import com.rywent.pixelhabit.presentation.screens.habits.components.HabitsTabSwitcher
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.HabitsSubScreen
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.LifestyleSubScreen
-import com.rywent.pixelhabit.presentation.screens.habits.subScreens.subTabTransitionSpec
+import com.rywent.pixelhabit.presentation.screens.habits.subScreens.QuestsSubScreen
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HabitsScreen(
     navController: NavController,
     paddingValues: PaddingValues,
     viewModel: HabitsViewModel = hiltViewModel()
-){
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     val tabs = listOf("HABITS", "LIFESTYLE", "QUESTS")
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 15.dp, end = 15.dp)
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(15.dp))
+    val pagerState = rememberPagerState(
+        initialPage = uiState.selectedTabIndex,
+        pageCount = { tabs.size }
+    )
 
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { pagerState.currentPage }
+            .distinctUntilChanged()
+            .collect { page ->
+                if (page != uiState.selectedTabIndex) {
+                    viewModel.onTabSelected(page)
+                }
+            }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.padding(start = 15.dp, end = 15.dp)) {
+                Spacer(modifier = Modifier.height(15.dp))
                 Text(
                     text = "Habits",
                     fontSize = 46.sp,
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-            }
-            item {
                 Spacer(modifier = Modifier.height(15.dp))
 
                 HabitsTabSwitcher(
                     tabs = tabs,
                     selectedIndex = uiState.selectedTabIndex,
-                    onTabSelected = { index -> viewModel.onTabSelected(index)}
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-
-                AnimatedContent(
-                    targetState = uiState.selectedTabIndex,
-                    transitionSpec = {
-                        subTabTransitionSpec(targetState > initialState)
-                    },
-                    label = "tabContentTransition",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 0.dp)
-                ) { targetIndex ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateContentSize(
-                                animationSpec = tween(300, easing = FastOutSlowInEasing)
-                            )
-                    ) {
-                        when (targetIndex) {
-                            0 -> HabitsSubScreen(
-                                navigateToHabitDetails = { habitId ->
-                                    viewModel.onHabitClick(habitId)
-                                },
-                                uiState
-                            )
-                            1 -> LifestyleSubScreen(
-                                navigateToLifestyleDetails = {lifestyleId ->
-                                    viewModel.onLifestyleClick(lifestyleId)
-                                },
-                                uiState
-                            )
-                            2 -> Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(32.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "Quests Screen",
-                                    style = MaterialTheme.typography.headlineMedium
+                    onTabSelected = { index ->
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(
+                                page = index,
+                                animationSpec = tween(
+                                    durationMillis = 400,
+                                    easing = FastOutSlowInEasing
                                 )
-                            }
+                            )
+                            viewModel.onTabSelected(index)
                         }
                     }
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                pageSpacing = 0.dp,
+                beyondViewportPageCount = 2,
+                key = { it }
+            ) { page ->
+                val scrollState = rememberScrollState()
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(horizontal = 15.dp)
+                ) {
+                    when (page) {
+                        0 -> HabitsSubScreen(
+                            navigateToHabitDetails = { viewModel.onHabitClick(it) },
+                            uiState = uiState
+                        )
+                        1 -> LifestyleSubScreen(
+                            navigateToLifestyleDetails = { viewModel.onLifestyleClick(it) },
+                            uiState = uiState
+                        )
+                        2 -> QuestsSubScreen(
+                            navigateToQuestDetails = { viewModel.onQuestClick(it) },
+                            uiState = uiState
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
             }
         }
+
+        if (uiState.showCreateHabitPanel) {
+            CreateHabitPanel(
+                onDismiss = { viewModel.onDismissCreateHabitPanel() }
+            )
+        }
+
+        AddItemButton(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 25.dp, end = 15.dp),
+            onClick = {
+                when (uiState.selectedTabIndex) {
+                    0 -> viewModel.onHabitCreateClick()
+                    1 -> viewModel.onLifestyleCreateClick()
+                    2 -> viewModel.onQuestCreateClick()
+                }
+            }
+        )
     }
 }

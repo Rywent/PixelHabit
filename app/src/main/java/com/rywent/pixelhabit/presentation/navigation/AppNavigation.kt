@@ -20,6 +20,7 @@ import com.rywent.pixelhabit.presentation.screens.focus.FocusScreen
 import com.rywent.pixelhabit.presentation.screens.habits.HabitsScreen
 import com.rywent.pixelhabit.presentation.screens.journal.JournalScreen
 import androidx.compose.ui.unit.IntOffset
+import com.rywent.pixelhabit.presentation.components.panels.CreateHabitPanel
 
 private const val BOTTOM_NAV_TRANSITION_DURATION = 350
 
@@ -215,6 +216,7 @@ fun AppNavigation(
         ) {
             JournalScreen(navController, paddingValues)
         }
+
 
 
     }

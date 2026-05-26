@@ -1,4 +1,4 @@
-package com.rywent.pixelhabit.presentation.screens.home.components
+package com.rywent.pixelhabit.presentation.components.customElements
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,17 +19,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.rywent.pixelhabit.ui.theme.adaptiveStandoutShadowColor
 
 @Composable
-fun AddHabitButton(
+fun AddItemButton(
     modifier: Modifier = Modifier,
-    onAddHabit: () -> Unit
+    onClick: () -> Unit
 ) {
-    val scheme = MaterialTheme.colorScheme
-    val shadowColor = adaptiveStandoutShadowColor()
     val haptic = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -39,30 +35,28 @@ fun AddHabitButton(
             .shadow(
                 elevation = 12.dp,
                 shape = CircleShape,
-                clip = false,
-                ambientColor = shadowColor,
-                spotColor = shadowColor
+                clip = false
             )
             .clip(CircleShape)
-            .background(scheme.primary)
+            .background(MaterialTheme.colorScheme.primary)
             .clickable(
                 interactionSource = interactionSource,
                 indication = ripple(
-                    color = scheme.onPrimary.copy(alpha = 0.2f),
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
                     bounded = true
                 ),
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onAddHabit()
+                    onClick()
                 }
             ),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Rounded.Add,
-            contentDescription = null,
-            tint = scheme.onPrimary,
-            modifier = Modifier.size(42.dp)
+            contentDescription = "Add",
+            tint = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.size(46.dp)
         )
     }
 }

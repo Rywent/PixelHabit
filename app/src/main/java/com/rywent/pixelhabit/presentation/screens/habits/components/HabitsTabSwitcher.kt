@@ -4,7 +4,6 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +26,14 @@ fun HabitsTabSwitcher(
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
+    val previousSelectedIndex = remember { mutableIntStateOf(selectedIndex) }
+
+    LaunchedEffect(selectedIndex) {
+        if (selectedIndex != previousSelectedIndex.intValue) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+        previousSelectedIndex.intValue = selectedIndex
+    }
 
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -37,6 +44,19 @@ fun HabitsTabSwitcher(
             val isSelected = index == selectedIndex
             val scope = rememberCoroutineScope()
             val pressScaleX = remember { Animatable(1f) }
+
+            LaunchedEffect(isSelected) {
+                if (isSelected) {
+                    pressScaleX.snapTo(1.08f)
+                    pressScaleX.animateTo(
+                        targetValue = 1f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    )
+                }
+            }
 
             Surface(
                 modifier = Modifier
@@ -50,10 +70,7 @@ fun HabitsTabSwitcher(
                         scope.launch {
                             pressScaleX.animateTo(
                                 targetValue = 1.08f,
-                                animationSpec = tween(
-                                    durationMillis = 120,
-                                    easing = FastOutSlowInEasing
-                                )
+                                animationSpec = tween(120, easing = FastOutSlowInEasing)
                             )
                             pressScaleX.animateTo(
                                 targetValue = 1f,

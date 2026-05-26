@@ -4,19 +4,19 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.rywent.pixelhabit.presentation.screens.habits.HabitsUISate
+import com.rywent.pixelhabit.presentation.screens.habits.HabitsUIState
 import com.rywent.pixelhabit.presentation.screens.habits.components.LifestyleCard
 import com.rywent.pixelhabit.presentation.screens.habits.components.NoLifestyle
 
 @Composable
 fun LifestyleSubScreen(
     navigateToLifestyleDetails: (String) -> Unit,
-    uiState: HabitsUISate,
+    uiState: HabitsUIState,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 8.dp)
+            .padding(top = 8.dp)
     ) {
         if (uiState.lifestyles.isEmpty()) {
             NoLifestyle()
