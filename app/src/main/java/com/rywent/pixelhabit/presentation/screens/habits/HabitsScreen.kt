@@ -140,7 +140,11 @@ fun HabitsScreen(
 
         if (uiState.showCreateHabitPanel) {
             CreateHabitPanel(
-                onDismiss = { viewModel.onDismissCreateHabitPanel() }
+                onDismiss = { viewModel.onDismissCreateHabitPanel() },
+                lifestyles = uiState.lifestyles,
+                onHabitCreated = { habit ->
+                    viewModel.createHabit(habit)
+                }
             )
         }
 

@@ -79,6 +79,10 @@ class HabitsViewModel @Inject constructor() : ViewModel() {
         _uiState.update { it.copy(showCreateQuestPanel = false) }
     }
 
+    fun createHabit(habit: HabitData){
+
+    }
+
     private fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }

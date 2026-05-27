@@ -77,13 +77,15 @@ fun HabitCard(
                         modifier = Modifier
                             .size(64.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                            .background(
+                                habit.lifestyleColor.copy(alpha = 0.12f)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = habit.icon,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = habit.lifestyleColor,
                             modifier = Modifier.size(34.dp)
                         )
                     }

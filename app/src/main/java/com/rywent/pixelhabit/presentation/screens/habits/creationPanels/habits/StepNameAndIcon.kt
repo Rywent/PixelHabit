@@ -17,11 +17,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-data class IconWithColor(
-    val icon: ImageVector,
-    val color: Color
-)
-
 @Composable
 fun StepNameAndIcon(
     name: String,
@@ -36,7 +31,7 @@ fun StepNameAndIcon(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 15.dp),
+            .padding(vertical = 15.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(

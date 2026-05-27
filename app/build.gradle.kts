@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
-
 }
 
 android {
@@ -69,5 +68,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.coil.compose)
     implementation(libs.coil.svg)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+
 }
 
