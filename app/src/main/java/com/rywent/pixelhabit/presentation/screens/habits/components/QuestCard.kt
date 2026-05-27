@@ -6,11 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -22,10 +18,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.rywent.pixelhabit.presentation.components.customElements.CustomCircularProgress
 import com.rywent.pixelhabit.ui.theme.adaptiveShadowColor
 
 @Composable
@@ -50,7 +45,7 @@ fun QuestCard(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (quest.isCompleted)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                MaterialTheme.colorScheme.surfaceContainerLow
             else
                 MaterialTheme.colorScheme.surfaceContainer
         ),
@@ -83,20 +78,17 @@ fun QuestCard(
                         .clip(CircleShape)
                         .background(
                             if (quest.isCompleted)
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                quest.iconColor.copy(alpha = 0.05f)
                             else
                                 quest.iconColor.copy(alpha = 0.1f)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (quest.isCompleted)
-                            Icons.Rounded.CheckCircle
-                        else
-                            quest.icon,
+                        imageVector = quest.icon,
                         contentDescription = null,
                         tint = if (quest.isCompleted)
-                            MaterialTheme.colorScheme.primary
+                            quest.iconColor.copy(alpha = 0.4f)
                         else
                             quest.iconColor,
                         modifier = Modifier.size(28.dp)
@@ -111,7 +103,11 @@ fun QuestCard(
                         text = quest.name,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = if (quest.isCompleted)
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        else
+                            MaterialTheme.colorScheme.onSurface,
+                        textDecoration = if (quest.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -123,7 +119,11 @@ fun QuestCard(
                         Text(
                             text = quest.description,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (quest.isCompleted)
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant,
+                            textDecoration = if (quest.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -143,7 +143,7 @@ fun QuestCard(
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = if (quest.isCompleted)
-                            MaterialTheme.colorScheme.primary
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                         else if (quest.daysLeft <= 2)
                             MaterialTheme.colorScheme.error
                         else
@@ -152,7 +152,10 @@ fun QuestCard(
                     Text(
                         text = if (quest.isCompleted) "done" else "days left",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (quest.isCompleted)
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -168,7 +171,7 @@ fun QuestCard(
                         .height(6.dp)
                         .clip(RoundedCornerShape(3.dp)),
                     color = if (quest.isCompleted)
-                        MaterialTheme.colorScheme.primary
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                     else
                         quest.iconColor,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -186,12 +189,18 @@ fun QuestCard(
                         text = "Day ${quest.currentDay}/${quest.totalDays}",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (quest.isCompleted)
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "${quest.startDate} — ${quest.endDate}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        color = if (quest.isCompleted)
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                 }
             }
