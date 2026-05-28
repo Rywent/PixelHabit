@@ -1,29 +1,48 @@
 package com.rywent.pixelhabit.presentation.screens.home
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.DirectionsRun
-import androidx.compose.material.icons.automirrored.rounded.MenuBook
-import androidx.compose.material.icons.rounded.DirectionsRun
-import androidx.compose.material.icons.rounded.MenuBook
-import androidx.compose.material.icons.rounded.SelfImprovement
-import androidx.compose.material.icons.rounded.WaterDrop
+
 import androidx.lifecycle.ViewModel
-import com.rywent.pixelhabit.presentation.components.habit.TodayHabitData
+import androidx.lifecycle.viewModelScope
+import com.rywent.pixelhabit.data.local.entity.HabitEntity
+import com.rywent.pixelhabit.data.local.entity.UserEntity
+import com.rywent.pixelhabit.data.mapper.toEntity
+import com.rywent.pixelhabit.data.mapper.toLifestyleData
+import com.rywent.pixelhabit.data.mapper.toTodayHabitData
+import com.rywent.pixelhabit.data.repository.HabitRepository
+import com.rywent.pixelhabit.data.repository.LifestyleRepository
+import com.rywent.pixelhabit.data.repository.UserRepository
+import com.rywent.pixelhabit.presentation.components.habit.HabitData
 import com.rywent.pixelhabit.presentation.screens.home.components.DayStat
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 import javax.inject.Inject
 @HiltViewModel
-class HomeViewModel @Inject constructor() : ViewModel() {
+class HomeViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+    private val habitRepository: HabitRepository,
+    private val lifestyleRepository: LifestyleRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private val userId = "default_user"
+
     init {
+        ensureUserExists()
+        viewModelScope.launch {
+            habitRepository.checkAndResetStreaks(userId)
+            habitRepository.resetWeeklyProgressIfNeeded(userId)
+        }
         loadHomeData()
+        loadTodayHabits()
     }
 
     fun onSettingsClicked() {
@@ -39,75 +58,81 @@ class HomeViewModel @Inject constructor() : ViewModel() {
     }
 
     fun onAddHabit(){
-
+        _uiState.update { it.copy(showCreateHabitPanel = true) }
     }
 
+    fun onDismissCreateHabitPanel() {
+        _uiState.update { it.copy(showCreateHabitPanel = false) }
+    }
     fun onHabitClick (id: String){
         val habit = _uiState.value.todayHabits.find { it.id == id }
 
     }
+    fun createHabit(habit: HabitData) {
+        viewModelScope.launch {
+            habitRepository.insertHabit(habit.toEntity(userId))
+        }
+    }
+
     fun onToggleExpandTodayHabits() {
         _uiState.update { it.copy(isTodayHabitsExpanded = !it.isTodayHabitsExpanded) }
     }
 
     fun onHabitCheckboxClicked(id: String, isCompleted: Boolean) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                todayHabits = currentState.todayHabits.map { habit ->
-                    if (habit.id == id)
-                        habit.copy(isCompleted = isCompleted)
-                    else
-                        habit
-                }
-            )
+        val todayDateString = LocalDate.now().toString()
+
+        viewModelScope.launch {
+            habitRepository.toggleCompletion(id, todayDateString, isCompleted)
         }
     }
-
     private fun loadHomeData() {
         _uiState.value = HomeUiState(
             userName = getUserName(),
             currentDate = getCurrentDate(),
             currentStreak = 14,
             weekStat = getWeekStatistics(),
-            todayHabits = getTodayHabits()
         )
+
+        viewModelScope.launch {
+            lifestyleRepository.getLifestylesByUserId(userId).collect { lifestyles ->
+                _uiState.update { it ->
+                    it.copy(lifestyles = lifestyles.map { it.toLifestyleData() })
+                }
+            }
+        }
     }
 
-    private fun getTodayHabits() : List<TodayHabitData>{
-        return listOf(
-            TodayHabitData(
-                id = "habit_1",
-                name = "Morning Run & Stretch",
-                description = "Running 5 km every day + full body stretching for 10 minutes",
-                streak = 5,
-                icon = Icons.Rounded.DirectionsRun,
-                isCompleted = true
-            ),
-            TodayHabitData(
-                id = "habit_2",
-                name = "Read 30 Pages",
-                description = "Read at least 30 pages of non-fiction book before bed",
-                streak = 12,
-                icon = Icons.Rounded.MenuBook,
-                isCompleted = false
-            ),
-            TodayHabitData(
-                id = "habit_3",
-                name = "Meditation & Breathing",
-                description = "10 minutes of mindfulness meditation with deep breathing exercises",
-                streak = 3,
-                icon = Icons.Rounded.SelfImprovement,
-                isCompleted = true
-            ),
-            TodayHabitData(
-                id = "habit_4",
-                name = "Drink 2L Water",
-                description = "Track and drink at least 2 liters of water throughout the day",
-                streak = 21,
-                icon = Icons.Rounded.WaterDrop,
-                isCompleted = false
-            )
-        )
+    private fun loadTodayHabits() {
+        val todayDateString = LocalDate.now().toString()
+        val dayOfWeek = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
+
+        viewModelScope.launch {
+            habitRepository.getHabitsForToday(userId, todayDateString)
+                .collect { habitWithCompletions ->
+
+                    val todayHabits = habitWithCompletions
+                        .filter { isHabitForToday(it.habit, dayOfWeek) }
+                        .map { it.toTodayHabitData() }
+
+                    _uiState.update { it.copy(todayHabits = todayHabits) }
+                }
+        }
+    }
+
+    private fun isHabitForToday(habit: HabitEntity, dayOfWeek: String): Boolean {
+        return when (habit.frequency) {
+            "Every day" -> true
+            "Weekdays" -> dayOfWeek !in listOf("Sat", "Sun")
+            "Weekends" -> dayOfWeek in listOf("Sat", "Sun")
+            "Every other day" -> {
+                val dayIndex = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").indexOf(dayOfWeek)
+                dayIndex % 2 == 0
+            }
+            "Custom" -> {
+                habit.customDays?.split(",")?.contains(dayOfWeek) == true
+            }
+            else -> true
+        }
     }
 
     private fun getWeekStatistics() : List<DayStat> {
@@ -128,5 +153,18 @@ class HomeViewModel @Inject constructor() : ViewModel() {
             java.util.Locale.getDefault()
         )
         return "Today's ${today.format(formatter).replaceFirstChar { it.uppercase() }}"
+    }
+
+    private fun ensureUserExists() {
+        viewModelScope.launch {
+            val existingUser = userRepository.getUserById(userId)
+            if (existingUser == null) {
+                val newUser = UserEntity(
+                    id = userId,
+                    name = "Rywent"
+                )
+                userRepository.insertUser(newUser)
+            }
+        }
     }
 }

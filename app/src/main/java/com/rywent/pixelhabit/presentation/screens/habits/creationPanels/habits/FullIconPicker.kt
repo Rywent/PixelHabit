@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -36,14 +39,14 @@ fun FullIconPicker(
                 Icons.Default.Favorite, Icons.Default.FitnessCenter, Icons.Default.WaterDrop,
                 Icons.Default.RunCircle, Icons.Default.SelfImprovement, Icons.Default.Bedtime,
                 Icons.Default.LocalHospital, Icons.Default.MonitorHeart, Icons.Default.EmojiFoodBeverage,
-                Icons.Default.DirectionsRun, Icons.Default.Pool, Icons.Default.SportsGymnastics,
+                Icons.AutoMirrored.Filled.DirectionsRun, Icons.Default.Pool, Icons.Default.SportsGymnastics,
                 Icons.Default.Cake, Icons.Default.Restaurant, Icons.Default.NoFood,
                 Icons.Default.Vaccines, Icons.Default.Sick, Icons.Default.Healing,
                 Icons.Default.AccessibilityNew, Icons.Default.SportsGymnastics
             )),
             IconCategory("Mindfulness & Productivity", listOf(
                 Icons.Default.Psychology, Icons.Default.Lightbulb, Icons.Default.Edit,
-                Icons.Default.Book, Icons.Default.MenuBook, Icons.Default.CalendarToday,
+                Icons.Default.Book, Icons.AutoMirrored.Filled.MenuBook, Icons.Default.CalendarToday,
                 Icons.Default.Timer, Icons.Default.Alarm, Icons.Default.CheckCircle,
                 Icons.Default.Task, Icons.Default.Work, Icons.Default.Balance,
                 Icons.Default.EmojiObjects, Icons.Default.WbSunny, Icons.Default.Nightlight,
@@ -64,7 +67,7 @@ fun FullIconPicker(
                 Icons.Default.LocalLaundryService, Icons.Default.Kitchen, Icons.Default.Pets,
                 Icons.Default.ChildCare, Icons.Default.Group, Icons.Default.FamilyRestroom,
                 Icons.Default.Shower, Icons.Default.Bathtub, Icons.Default.Wc,
-                Icons.Default.Phone, Icons.Default.Email, Icons.Default.Chat,
+                Icons.Default.Phone, Icons.Default.Email, Icons.AutoMirrored.Filled.Chat,
                 Icons.Default.Notifications, Icons.Default.Star
             )),
             IconCategory("Nature & Environment", listOf(

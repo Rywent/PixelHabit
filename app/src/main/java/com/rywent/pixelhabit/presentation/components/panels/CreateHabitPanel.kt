@@ -1,13 +1,8 @@
 package com.rywent.pixelhabit.presentation.components.panels
 
-import android.widget.Space
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
@@ -49,6 +43,7 @@ import com.rywent.pixelhabit.presentation.screens.habits.components.LifestyleDat
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.habits.ColorPickerScreen
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.habits.FullIconPicker
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.habits.StepCategory
+import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.habits.StepDescription
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.habits.StepFrequency
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.habits.StepNameAndIcon
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.habits.StepNavigationBar
@@ -70,6 +65,7 @@ fun CreateHabitPanel(
     )
 
     var habitName by remember { mutableStateOf("") }
+    var habitDescription by remember { mutableStateOf("") }
     var selectedIcon by remember { mutableStateOf(Icons.Default.Favorite) }
     var selectedColor by remember { mutableStateOf(Color(0xFF4CAF50)) }
     var selectedCategory by remember { mutableStateOf(defaultCategory) }
@@ -82,7 +78,7 @@ fun CreateHabitPanel(
     var showIconPicker by remember { mutableStateOf(false) }
     var showColorPicker by remember { mutableStateOf(false) }
 
-    val pagerState = rememberPagerState(pageCount = { 5 })
+    val pagerState = rememberPagerState(pageCount = { 6 })
     val coroutineScope = rememberCoroutineScope()
     val currentStage = pagerState.currentPage
 
@@ -146,7 +142,7 @@ fun CreateHabitPanel(
 
             PixelSliderProgress(
                 currentStep = currentStage,
-                totalSteps = 5,
+                totalSteps = 6,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -171,8 +167,14 @@ fun CreateHabitPanel(
                             onMoreColorsClick = { showColorPicker = true }
                         )
                     }
+                    1 -> StepDescription(
+                        selectedColor = selectedColor,
+                        description = habitDescription,
+                        onDescriptionChange = { habitDescription = it }
+                    )
 
-                    1 -> StepCategory(
+
+                    2 -> StepCategory(
                         lifestyles = lifestyles,
                         selectedCategoryName = selectedCategory.name,
                         onCategorySelected = {
@@ -181,31 +183,43 @@ fun CreateHabitPanel(
                         }
                     )
 
-                    2 -> StepFrequency(
+                    3 -> StepFrequency(
                         selectedFrequency = selectedFrequency,
                         selectedCustomDays = selectedCustomDays,
                         onFrequencySelected = { selectedFrequency = it },
                         onCustomDaysSelected = { selectedCustomDays = it }
                     )
 
-                    3 -> StepTimeOfDay(
+                    4 -> StepTimeOfDay(
                         selectedTimeOfDay = selectedTimeOfDay,
                         selectedSpecificTime = selectedSpecificTime,
                         onTimeOfDaySelected = { selectedTimeOfDay = it },
                         onSpecificTimeSelected = { selectedSpecificTime = it }
                     )
 
-                    4 -> StepPreviewAndCreate(
+                    5 -> StepPreviewAndCreate(
                         habitName = habitName,
+                        description = habitDescription,
                         selectedIcon = selectedIcon,
                         selectedColor = selectedColor,
                         selectedCategory = selectedCategory.name,
                         selectedFrequency = selectedFrequency,
                         selectedTimeOfDay = selectedTimeOfDay,
+                        selectedCustomDays = selectedCustomDays,
                         selectedSpecificTime = selectedSpecificTime,
                         onCreateHabit = {
+                            val weeklyGoal = when (selectedFrequency) {
+                                "every_day" -> 7
+                                "weekdays" -> 5
+                                "weekends" -> 2
+                                "every_other_day" -> 4
+                                "custom" -> selectedCustomDays.size
+                                else -> 7
+                            }
+
                             val habit = HabitData(
                                 id = UUID.randomUUID().toString(),
+                                description = habitDescription,
                                 name = habitName.ifBlank { "New Habit" },
                                 icon = selectedIcon,
                                 frequency = when (selectedFrequency) {
@@ -222,12 +236,14 @@ fun CreateHabitPanel(
                                     "evening" -> Icons.Default.NightlightRound
                                     else -> Icons.Default.Schedule
                                 },
+                                specificTime = selectedSpecificTime,
+                                customDays = if (selectedFrequency == "custom") selectedCustomDays.joinToString(",") else null,
                                 lifestyleName = selectedCategory.name,
                                 lifestyleColor = selectedColor,
                                 lifestyleIcon = selectedCategory.icon,
                                 weeklyProgress = 0f,
                                 weeklyDone = 0,
-                                weeklyGoal = 7,
+                                weeklyGoal = weeklyGoal,
                                 currentStreak = 0,
                                 bestStreak = 0
                             )
@@ -257,7 +273,7 @@ fun CreateHabitPanel(
                                 isNameErrorShowing = false
                             }
                         }
-                        2 -> {
+                        3 -> {
                             if (selectedFrequency == "custom" && selectedCustomDays.isEmpty()) {
                                 if (!isFrequencyErrorShowing) {
                                     frequencyError = "Select at least one day"
@@ -271,7 +287,7 @@ fun CreateHabitPanel(
                         }
                     }
 
-                    if (canProceed && currentStage < 4) {
+                    if (canProceed && currentStage < 5) {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(currentStage + 1)
                         }

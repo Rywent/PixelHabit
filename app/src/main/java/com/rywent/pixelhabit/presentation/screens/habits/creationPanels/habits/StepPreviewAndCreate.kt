@@ -22,14 +22,25 @@ import com.rywent.pixelhabit.presentation.components.habit.HabitData
 @Composable
 fun StepPreviewAndCreate(
     habitName: String,
+    description: String,
     selectedIcon: ImageVector,
     selectedColor: Color,
     selectedCategory: String,
     selectedFrequency: String,
     selectedTimeOfDay: String,
     selectedSpecificTime: String?,
+    selectedCustomDays: List<String> = emptyList(),
     onCreateHabit: () -> Unit
 ) {
+    val weeklyGoal = when (selectedFrequency) {
+        "every_day" -> 7
+        "weekdays" -> 5
+        "weekends" -> 2
+        "every_other_day" -> 4
+        "custom" -> selectedCustomDays.size
+        else -> 7
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -50,16 +61,15 @@ fun StepPreviewAndCreate(
             modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
         )
 
-        // Превью карточки привычки
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(12.dp, RoundedCornerShape(32.dp))
         ) {
             HabitCard(
                 habit = HabitData(
                     id = "preview",
-                    name = if (habitName.isBlank()) "New Habit" else habitName,
+                    name = habitName.ifBlank { "New Habit" },
+                    description = description,
                     icon = selectedIcon,
                     frequency = when (selectedFrequency) {
                         "every_day" -> "Every day"
@@ -68,19 +78,20 @@ fun StepPreviewAndCreate(
                         "every_other_day" -> "Every other day"
                         else -> "Custom"
                     },
-                    timeOfDay = selectedTimeOfDay.replaceFirstChar { it.uppercase() },
+                    timeOfDay = selectedTimeOfDay,
                     timeOfDayIcon = when (selectedTimeOfDay) {
                         "morning" -> Icons.Default.WbSunny
                         "afternoon" -> Icons.Default.WbTwilight
                         "evening" -> Icons.Default.NightlightRound
                         else -> Icons.Default.Schedule
                     },
+                    specificTime = selectedSpecificTime,
                     lifestyleName = selectedCategory,
                     lifestyleColor = selectedColor,
                     lifestyleIcon = null,
                     weeklyProgress = 0f,
                     weeklyDone = 0,
-                    weeklyGoal = 7,
+                    weeklyGoal = weeklyGoal,
                     currentStreak = 0,
                     bestStreak = 0
                 ),
@@ -90,7 +101,6 @@ fun StepPreviewAndCreate(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Финальная большая кнопка
         Button(
             onClick = onCreateHabit,
             modifier = Modifier

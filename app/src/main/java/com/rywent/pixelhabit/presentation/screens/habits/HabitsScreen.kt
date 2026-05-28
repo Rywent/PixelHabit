@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.rywent.pixelhabit.presentation.components.customElements.AddItemButton
 import com.rywent.pixelhabit.presentation.components.panels.CreateHabitPanel
+import com.rywent.pixelhabit.presentation.components.panels.CreateLifestylePanel
 import com.rywent.pixelhabit.presentation.screens.habits.components.HabitsTabSwitcher
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.HabitsSubScreen
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.LifestyleSubScreen
@@ -144,6 +145,14 @@ fun HabitsScreen(
                 lifestyles = uiState.lifestyles,
                 onHabitCreated = { habit ->
                     viewModel.createHabit(habit)
+                }
+            )
+        }
+        if(uiState.showCreateLifestylePanel){
+            CreateLifestylePanel(
+                onDismiss = {viewModel.onDismissCreateLifestylePanel()},
+                onLifestyleCreated = {lifestyle ->
+                    viewModel.createLifestyle(lifestyle)
                 }
             )
         }

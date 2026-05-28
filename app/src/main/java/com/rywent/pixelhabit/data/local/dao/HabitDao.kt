@@ -17,6 +17,9 @@ interface HabitDao {
     @Query("select * from habits where userId = :userId")
     fun getAllHabits(userId: String): Flow<List<HabitEntity>>
 
+    @Query("SELECT * FROM habits WHERE userId = :userId")
+    suspend fun getAllHabitsOnce(userId: String): List<HabitEntity>
+
     // get habit by id
     @Query("select * from habits where id = :habitId")
     suspend fun getHabitById(habitId: String): HabitEntity?
@@ -34,6 +37,7 @@ interface HabitDao {
         LEFT JOIN habit_completions c 
             ON h.id = c.habitId AND c.date = :today
         WHERE h.userId = :userId
+        GROUP BY h.id
         ORDER BY h.createdAt DESC
     """)
     fun getHabitsForToday(userId: String, today: String): Flow<List<HabitWithCompletion>>
@@ -42,6 +46,13 @@ interface HabitDao {
     @Query("SELECT * FROM habits WHERE userId = :userId AND timeOfDay = :timeOfDay")
     fun getHabitsByTimeOfDay(userId: String, timeOfDay: String): Flow<List<HabitEntity>>
 
+    // update progress
+    @Query("UPDATE habits SET weeklyProgress = :progress, weeklyDone = :done, updatedAt = :updatedAt WHERE id = :habitId")
+    suspend fun updateProgress(habitId: String, progress: Float, done: Int, updatedAt: Long)
+
+    // update streak
+    @Query("UPDATE habits SET currentStreak = :streak, bestStreak = :bestStreak, updatedAt = :updatedAt WHERE id = :habitId")
+    suspend fun updateStreak(habitId: String, streak: Int, bestStreak: Int, updatedAt: Long)
     // create habit
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertHabit(habit: HabitEntity)

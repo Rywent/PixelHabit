@@ -112,20 +112,21 @@ fun HabitCard(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
 
-                            Spacer(modifier = Modifier.width(10.dp))
-
-                            Icon(
-                                imageVector = habit.timeOfDayIcon,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = habit.timeOfDay,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            if (habit.specificTime != null) {
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Icon(
+                                    imageVector = habit.timeOfDayIcon,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = habit.specificTime,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -206,7 +207,7 @@ fun HabitCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
-                        if (habit.bestStreak > habit.currentStreak) {
+                        if (habit.bestStreak > 0) {
                             // best streak
                             Text(
                                 text = "Best • ${habit.bestStreak}d",
@@ -223,10 +224,13 @@ fun HabitCard(
 data class HabitData(
     val id: String,
     val name: String,
+    val description: String,
     val icon: ImageVector,
     val frequency: String,
     val timeOfDay: String,
     val timeOfDayIcon: ImageVector,
+    val specificTime: String? = null,
+    val customDays: String? = null,
     val lifestyleName: String,
     val lifestyleColor: Color,
     val lifestyleIcon: ImageVector?,
@@ -234,5 +238,6 @@ data class HabitData(
     val weeklyDone: Int,
     val weeklyGoal: Int,
     val currentStreak: Int,
-    val bestStreak: Int
+    val bestStreak: Int,
+    val isCompletedToday: Boolean = false
 )

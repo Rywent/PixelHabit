@@ -2,6 +2,7 @@ package com.rywent.pixelhabit.presentation.screens.habits.creationPanels.habits
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -97,15 +98,53 @@ private fun TimeOfDayCard(
     onClick: () -> Unit,
     onSetExactTime: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+
+    val containerColor = if (isSelected) {
+        if (isDark) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.primary
+    } else {
+        if (isDark) MaterialTheme.colorScheme.surfaceContainerHigh
+        else MaterialTheme.colorScheme.surface
+    }
+
+    val contentColor = if (isSelected) {
+        if (isDark) MaterialTheme.colorScheme.onPrimaryContainer
+        else MaterialTheme.colorScheme.onPrimary
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+
+    val subtitleColor = if (isSelected) {
+        if (isDark) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+        else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    val iconBoxColor = if (isSelected) {
+        if (isDark) option.color.copy(alpha = 0.15f)
+        else Color.White.copy(alpha = 0.2f)
+    } else {
+        option.color.copy(alpha = 0.12f)
+    }
+
+    val iconTint = if (isSelected) {
+        if (isDark) option.color
+        else Color.White
+    } else {
+        option.color
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(if (isSelected) 10.dp else 4.dp, RoundedCornerShape(26.dp)),
+            .shadow(
+                elevation = if (isSelected) 4.dp else 1.dp,
+                shape = RoundedCornerShape(26.dp)
+            ),
         shape = RoundedCornerShape(26.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surfaceContainerHigh
-        )
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Row(
             modifier = Modifier
@@ -118,13 +157,13 @@ private fun TimeOfDayCard(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)
-                    .background(option.color.copy(alpha = 0.12f)),
+                    .background(iconBoxColor),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = option.icon,
                     contentDescription = null,
-                    tint = option.color,
+                    tint = iconTint,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -135,12 +174,13 @@ private fun TimeOfDayCard(
                 Text(
                     text = option.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = contentColor
                 )
                 Text(
                     text = if (selectedTime != null) "At $selectedTime" else option.subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = subtitleColor
                 )
             }
 
@@ -148,13 +188,18 @@ private fun TimeOfDayCard(
                 Icon(
                     Icons.Default.CheckCircle,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = if (isDark) MaterialTheme.colorScheme.primary else Color.White
                 )
             }
         }
 
         if (isSelected && option.id != "anytime") {
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+            HorizontalDivider(
+                color = if (isDark)
+                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
+                else
+                    MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f)
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -165,10 +210,13 @@ private fun TimeOfDayCard(
                 Text(
                     text = selectedTime ?: "No specific time",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = subtitleColor
                 )
                 TextButton(onClick = onSetExactTime) {
-                    Text(if (selectedTime != null) "Change" else "Set exact time")
+                    Text(
+                        text = if (selectedTime != null) "Change" else "Set exact time",
+                        color = if (isDark) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+                    )
                 }
             }
         }

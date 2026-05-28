@@ -41,7 +41,7 @@ fun StatisticsSection(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Rounded.PieChart,
                 title = "Completion",
-                value = "${completionRate}%",
+                value = "${String.format("%.1f", completionRate)}%",
                 period = "this week"
             )
 

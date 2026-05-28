@@ -18,6 +18,7 @@ data class HabitEntity(
     @PrimaryKey
     val id: String,
     val name: String,
+    val description: String = "",
 
     val iconPath: String,
     val timeOfDayIconPath: String,
@@ -28,7 +29,10 @@ data class HabitEntity(
 
     val frequency: String,
     val timeOfDay: String,
+    val specificTime: String? = null,
     val lifestyleName: String,
+    val customDays: String? = null,
+
 
     val weeklyProgress: Float,
     val weeklyDone: Int,

@@ -35,7 +35,6 @@ fun LifestyleCard(
 
     Card(
         modifier = modifier
-            .aspectRatio(0.85f)
             .shadow(
                 elevation = 8.dp,
                 shape = RoundedCornerShape(28.dp),
@@ -68,12 +67,11 @@ fun LifestyleCard(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Top row with icon, category and delete button
+                // Top row: icon + category
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Icon container with custom color
                     Box(
                         modifier = Modifier
                             .size(52.dp)
@@ -89,7 +87,6 @@ fun LifestyleCard(
                         )
                     }
 
-                    // Category badge
                     if (lifestyle.category.isNotEmpty()) {
                         Spacer(modifier = Modifier.width(10.dp))
                         Surface(
@@ -136,15 +133,14 @@ fun LifestyleCard(
                     )
                 }
 
-                // Date at bottom-left
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Date всегда внизу
                 if (lifestyle.createdDate.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = lifestyle.createdDate,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Start
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     )
                 }
             }

@@ -24,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.rywent.pixelhabit.presentation.components.habit.HabitTodayCard
 import com.rywent.pixelhabit.presentation.components.habit.TodayHabitData
+import com.rywent.pixelhabit.presentation.components.panels.CreateHabitPanel
 import com.rywent.pixelhabit.presentation.screens.about.AboutBottomSheet
 import com.rywent.pixelhabit.presentation.screens.home.components.AddHabitButton
 import com.rywent.pixelhabit.presentation.screens.home.components.HeaderButtons
@@ -74,7 +75,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .offset(x = 0.dp, y = (-88).dp),
-                        onAddHabit = {}
+                        onAddHabit = { viewModel.onAddHabit() }
                     )
                 }
             }
@@ -145,6 +146,16 @@ fun HomeScreen(
 
         if(uiState.showAboutSheet){
             AboutBottomSheet(true, onDismiss = {viewModel.onDismissAbout()})
+        }
+
+        if (uiState.showCreateHabitPanel) {
+            CreateHabitPanel(
+                onDismiss = { viewModel.onDismissCreateHabitPanel() },
+                lifestyles = uiState.lifestyles,
+                onHabitCreated = { habit ->
+                    viewModel.createHabit(habit)
+                }
+            )
         }
     }
 }

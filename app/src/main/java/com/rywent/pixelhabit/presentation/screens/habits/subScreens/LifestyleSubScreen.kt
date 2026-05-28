@@ -32,7 +32,9 @@ fun LifestyleSubScreen(
                 ) {
                     // First card in row
                     LifestyleCard(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(220.dp),
                         lifestyle = row[0],
                         onClick = {
                             navigateToLifestyleDetails(row[0].id)
@@ -42,7 +44,9 @@ fun LifestyleSubScreen(
                     // Second card (if exists) or spacer for symmetry
                     if (row.size > 1) {
                         LifestyleCard(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(220.dp),
                             lifestyle = row[1],
                             onClick = {
                                 navigateToLifestyleDetails(row[1].id)

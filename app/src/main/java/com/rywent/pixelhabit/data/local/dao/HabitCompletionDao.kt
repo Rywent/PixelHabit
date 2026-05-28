@@ -11,8 +11,11 @@ import kotlinx.coroutines.flow.Flow
 interface HabitCompletionDao {
 
     // insert marker
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertCompletion(completion: HabitCompletionEntity)
+
+    @Query("UPDATE habit_completions SET completed = :completed, completedAt = :completedAt WHERE habitId = :habitId AND date = :date")
+    suspend fun updateCompletion(habitId: String, date: String, completed: Boolean, completedAt: Long?)
 
     // get marker for a specific day
     @Query("SELECT * FROM habit_completions WHERE habitId = :habitId AND date = :date")
