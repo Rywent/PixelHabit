@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +36,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rywent.pixelhabit.ui.theme.adaptiveShadowColor
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color as ComposeColor
 
 @Composable
@@ -44,16 +47,46 @@ fun WeekStatistics(
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
-    val animatedProgress = remember { Animatable(0f) }
 
+    val animatedHeights = remember {
+        List(7) { Animatable(0f) }
+    }
+
+    // first
     LaunchedEffect(Unit) {
-        animatedProgress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(
-                durationMillis = 1000,
-                easing = FastOutSlowInEasing
-            )
-        )
+        val maxValue = data.filter { it.value >= 0 }.maxOfOrNull { it.value }?.toFloat() ?: 0f
+
+        coroutineScope {
+            data.forEachIndexed { index, day ->
+                launch {
+                    val targetValue = calculateTargetHeight(day, maxValue)
+
+                    animatedHeights[index].snapTo(0f)
+                    animatedHeights[index].animateTo(
+                        targetValue = targetValue,
+                        animationSpec = tween(800, easing = FastOutSlowInEasing)
+                    )
+                }
+            }
+        }
+    }
+
+    // update
+    LaunchedEffect(data) {
+        val maxValue = data.filter { it.value >= 0 }.maxOfOrNull { it.value }?.toFloat() ?: 0f
+
+        coroutineScope {
+            data.forEachIndexed { index, day ->
+                launch {
+                    val targetValue = calculateTargetHeight(day, maxValue)
+
+                    animatedHeights[index].animateTo(
+                        targetValue = targetValue,
+                        animationSpec = tween(600, easing = FastOutSlowInEasing)
+                    )
+                }
+            }
+        }
     }
 
     val gradientBrush = Brush.linearGradient(
@@ -67,7 +100,6 @@ fun WeekStatistics(
     )
 
     val shadowColor = adaptiveShadowColor()
-
 
     Column(
         modifier = modifier
@@ -105,7 +137,7 @@ fun WeekStatistics(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.ArrowForwardIos,
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
                     contentDescription = "Open week details",
                     tint = scheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
@@ -123,16 +155,10 @@ fun WeekStatistics(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom
             ) {
-                val maxValue = data.maxOfOrNull { it.value } ?: 1
+                data.forEachIndexed { index, day ->
+                    val isFutureDay = day.value < 0
 
-                data.forEach { day ->
-                    val targetHeight = if (maxValue > 0) {
-                        (day.value.toFloat() / maxValue * 160).dp
-                    } else {
-                        8.dp
-                    }
-
-                    val animatedHeight = targetHeight * animatedProgress.value
+                    val animatedHeight = animatedHeights[index].value.dp
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -144,12 +170,21 @@ fun WeekStatistics(
                                 .height(animatedHeight)
                                 .clip(RoundedCornerShape(50))
                                 .background(
-                                    Brush.verticalGradient(
-                                        colors = listOf(
-                                            scheme.primary,
-                                            scheme.primary.copy(alpha = 0.4f)
+                                    if (isFutureDay) {
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                scheme.onSurface.copy(alpha = 0.1f),
+                                                scheme.onSurface.copy(alpha = 0.05f)
+                                            )
                                         )
-                                    )
+                                    } else {
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                scheme.primary,
+                                                scheme.primary.copy(alpha = 0.4f)
+                                            )
+                                        )
+                                    }
                                 )
                         )
 
@@ -158,7 +193,11 @@ fun WeekStatistics(
                         Text(
                             text = day.shortName,
                             style = MaterialTheme.typography.labelSmall,
-                            color = scheme.onSurfaceVariant,
+                            color = if (isFutureDay) {
+                                scheme.onSurfaceVariant.copy(alpha = 0.4f)
+                            } else {
+                                scheme.onSurfaceVariant
+                            },
                             textAlign = TextAlign.Center
                         )
                     }
@@ -175,6 +214,17 @@ fun ComposeColor.luminance(): Float {
     return 0.299f * r + 0.587f * g + 0.114f * b
 }
 
+private fun calculateTargetHeight(day: DayStat, maxValue: Float): Float {
+    val MIN_HEIGHT = 8f
+    val MAX_HEIGHT = 160f
+
+    return when {
+        day.value < 0 -> MIN_HEIGHT
+        maxValue == 0f -> MIN_HEIGHT
+        day.value == 0 -> MIN_HEIGHT
+        else -> (day.value.toFloat() / maxValue) * MAX_HEIGHT
+    }
+}
 
 data class DayStat(
     val shortName: String,

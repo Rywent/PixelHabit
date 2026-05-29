@@ -9,7 +9,10 @@ data class UserEntity (
     val id: String,
     val name: String,
 
+    val currentStreak: Int = 0,
+    val bestStreak: Int = 0,
 
     val createdAt: Long = System.currentTimeMillis(),
-    val lastActiveAt: Long = System.currentTimeMillis()
+    val lastActiveAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis()
 )

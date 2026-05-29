@@ -19,6 +19,17 @@ interface UserDao {
     @Query("select * from users")
     fun getAllUsers(): Flow<List<UserEntity>>
 
+    @Query("UPDATE users SET currentStreak = :streak, bestStreak = :bestStreak, updatedAt = :updatedAt WHERE id = :userId")
+    suspend fun updateStreak(userId: String, streak: Int, bestStreak: Int, updatedAt: Long)
+
+    // 🔥 Получение стрика
+    @Query("SELECT currentStreak FROM users WHERE id = :userId")
+    fun getStreakFlow(userId: String): Flow<Int?>
+
+    @Query("SELECT * FROM users WHERE id = :userId")
+    fun getUserFlow(userId: String): Flow<UserEntity?>
+
+
     // create user
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertUser(user: UserEntity)

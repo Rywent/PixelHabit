@@ -117,8 +117,13 @@ enum class AppIcon(val key: String, val icon: ImageVector) {
 
     WB_SUNNY_FILLED("WbSunny", Icons.Default.WbSunny),
     WB_TWILIGHT_FILLED("WbTwilight", Icons.Default.WbTwilight),
-    NIGHTLIGHT_FILLED("Nightlight", Icons.Default.Nightlight),
-    SCHEDULE_FILLED("Schedule", Icons.Default.Schedule);
+    NIGHTLIGHT_FILLED("Nightlight", Icons.Default.NightlightRound),
+    SCHEDULE_FILLED("Schedule", Icons.Default.Schedule),
+
+    LOCAL_FIRE_DEPARTMENT("LocalFireDepartment", Icons.Default.LocalFireDepartment),
+    APPS("Apps", Icons.Default.Apps),
+    KEYBOARD_ARROW_UP("KeyboardArrowUp", Icons.Default.KeyboardArrowUp),
+    KEYBOARD_ARROW_DOWN("KeyboardArrowDown", Icons.Default.KeyboardArrowDown);
 
 
 

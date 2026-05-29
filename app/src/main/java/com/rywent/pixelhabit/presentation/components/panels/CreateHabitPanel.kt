@@ -193,7 +193,12 @@ fun CreateHabitPanel(
                     4 -> StepTimeOfDay(
                         selectedTimeOfDay = selectedTimeOfDay,
                         selectedSpecificTime = selectedSpecificTime,
-                        onTimeOfDaySelected = { selectedTimeOfDay = it },
+                        onTimeOfDaySelected = {
+                            selectedTimeOfDay = it
+                            if (it == "anytime") {
+                                selectedSpecificTime = null
+                            }
+                        },
                         onSpecificTimeSelected = { selectedSpecificTime = it }
                     )
 
@@ -217,6 +222,16 @@ fun CreateHabitPanel(
                                 else -> 7
                             }
 
+                            val customDaysString = when (selectedFrequency) {
+                                "every_day" -> listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                                "weekdays" -> listOf("Mon", "Tue", "Wed", "Thu", "Fri")
+                                "weekends" -> listOf("Sat", "Sun")
+                                "every_other_day" -> listOf("Mon", "Wed", "Fri", "Sun")
+                                "custom" -> selectedCustomDays
+                                else -> listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                            }.joinToString(",")
+
+
                             val habit = HabitData(
                                 id = UUID.randomUUID().toString(),
                                 description = habitDescription,
@@ -237,7 +252,7 @@ fun CreateHabitPanel(
                                     else -> Icons.Default.Schedule
                                 },
                                 specificTime = selectedSpecificTime,
-                                customDays = if (selectedFrequency == "custom") selectedCustomDays.joinToString(",") else null,
+                                customDays = customDaysString,
                                 lifestyleName = selectedCategory.name,
                                 lifestyleColor = selectedColor,
                                 lifestyleIcon = selectedCategory.icon,
@@ -256,7 +271,7 @@ fun CreateHabitPanel(
 
             StepNavigationBar(
                 currentStep = currentStage,
-                totalSteps = 5,
+                totalSteps = 6,
                 onNext = {
                     var canProceed = true
 

@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rywent.pixelhabit.presentation.components.customElements.CustomCircularProgress
@@ -99,7 +100,9 @@ fun HabitCard(
                             text = habit.name,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
 
                         Spacer(modifier = Modifier.height(6.dp))
@@ -112,7 +115,7 @@ fun HabitCard(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
 
-                            if (habit.specificTime != null) {
+                            if (habit.timeOfDay.isNotEmpty()) {
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Icon(
                                     imageVector = habit.timeOfDayIcon,
@@ -122,7 +125,7 @@ fun HabitCard(
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = habit.specificTime,
+                                    text = habit.specificTime ?: habit.timeOfDay,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

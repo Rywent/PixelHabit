@@ -6,6 +6,14 @@ import com.rywent.pixelhabit.data.local.dao.HabitDao
 import com.rywent.pixelhabit.data.local.entity.HabitCompletionEntity
 import com.rywent.pixelhabit.data.local.entity.HabitEntity
 import com.rywent.pixelhabit.data.model.HabitWithCompletion
+import com.rywent.pixelhabit.data.utils.calculateBestStreak
+import com.rywent.pixelhabit.data.utils.calculateNewStreak
+import com.rywent.pixelhabit.data.utils.calculateWeeklyDone
+import com.rywent.pixelhabit.data.utils.calculateWeeklyProgress
+import com.rywent.pixelhabit.data.utils.findPreviousScheduledDate
+import com.rywent.pixelhabit.data.utils.isHabitScheduledForDate
+import com.rywent.pixelhabit.data.utils.shouldResetStreak
+import com.rywent.pixelhabit.data.utils.shouldResetWeeklyProgress
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -15,22 +23,33 @@ class HabitRepository(
     private val habitDao: HabitDao,
     private val completionDao: HabitCompletionDao
 ) {
-    // get habits for today
     fun getHabitsForToday(userId: String, today: String): Flow<List<HabitWithCompletion>> {
         return habitDao.getHabitsForToday(userId, today)
     }
 
-    // get all habits by user id
-    fun getAllHabits(userId: String) : Flow<List<HabitEntity>> {
+    fun getAllHabits(userId: String): Flow<List<HabitEntity>> {
         return habitDao.getAllHabits(userId)
     }
 
-    // get completion habits by date
     fun getCompletionsByDate(date: String): Flow<List<HabitCompletionEntity>> {
         return completionDao.getCompletionsByDate(date)
     }
 
-    // mark/unmark as completed
+    suspend fun getWeekCompletions(userId: String): List<HabitCompletionEntity> {
+        val today = LocalDate.now()
+        val startOfWeek = today.with(java.time.DayOfWeek.MONDAY)
+        val endOfWeek = startOfWeek.plusDays(6)
+
+        return completionDao.getCompletionsBetween(
+            startDate = startOfWeek.toString(),
+            endDate = endOfWeek.toString()
+        )
+    }
+
+    fun getWeekCompletionsFlow(startDate: String, endDate: String): Flow<List<HabitCompletionEntity>> {
+        return completionDao.getCompletionsBetweenFlow(startDate, endDate)
+    }
+
     @Transaction
     suspend fun toggleCompletion(habitId: String, date: String, completed: Boolean) {
         try {
@@ -55,30 +74,22 @@ class HabitRepository(
 
             val habit = habitDao.getHabitById(habitId) ?: return
 
-            val newDone = if (completed) {
-                habit.weeklyDone + 1
-            } else {
-                maxOf(0, habit.weeklyDone - 1)
-            }
-            val newProgress = if (habit.weeklyGoal > 0) {
-                newDone.toFloat() / habit.weeklyGoal
-            } else 0f
+            val newDone = calculateWeeklyDone(habit.weeklyDone, completed)
+            val newProgress = calculateWeeklyProgress(newDone, habit.weeklyGoal)
 
             habitDao.updateProgress(habitId, newProgress, newDone, System.currentTimeMillis())
 
             if (completed) {
-                val yesterday = LocalDate.now().minusDays(1).toString()
-                val yesterdayCompletion = completionDao.getCompletion(habitId, yesterday)
+                val previousScheduledDate = findPreviousScheduledDate(habit, LocalDate.parse(date))
+                val prevCompletion = if (previousScheduledDate != null) {
+                    completionDao.getCompletion(habitId, previousScheduledDate.toString())
+                } else null
 
-                val newStreak = if (yesterdayCompletion?.completed == true) {
-                    habit.currentStreak + 1
-                } else {
-                    1
-                }
-                val newBest = maxOf(newStreak, habit.bestStreak)
+                val newStreak = calculateNewStreak(habit.currentStreak, prevCompletion?.completed == true)
+                val newBest = calculateBestStreak(newStreak, habit.bestStreak)
                 habitDao.updateStreak(habitId, newStreak, newBest, System.currentTimeMillis())
             } else {
-                val newStreak = calculateCurrentStreak(habitId, date)
+                val newStreak = calculateCurrentStreak(habitId, date, habit)
                 habitDao.updateStreak(habitId, newStreak, habit.bestStreak, System.currentTimeMillis())
             }
 
@@ -88,20 +99,26 @@ class HabitRepository(
     }
 
     suspend fun checkAndResetStreaks(userId: String) {
-        val today = LocalDate.now().toString()
-        val yesterday = LocalDate.now().minusDays(1).toString()
-        val todayDayOfWeek = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
+        val today = LocalDate.now()
+        val todayString = today.toString()
+        val todayDayOfWeek = today.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
 
         val habits = habitDao.getAllHabitsOnce(userId)
         habits.forEach { habit ->
-            val shouldHaveDoneYesterday = isHabitForDay(habit, yesterday, LocalDate.now().minusDays(1).dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US))
+            val lastScheduledDate = findPreviousScheduledDate(habit, today)
 
-            if (shouldHaveDoneYesterday) {
-                val yesterdayCompletion = completionDao.getCompletion(habit.id, yesterday)
-                val todayCompletion = completionDao.getCompletion(habit.id, today)
+            if (lastScheduledDate != null) {
+                val lastScheduledCompletion = completionDao.getCompletion(
+                    habit.id,
+                    lastScheduledDate.toString()
+                )
 
-                if (yesterdayCompletion?.completed != true && todayCompletion?.completed != true) {
-                    if (habit.currentStreak > 0) {
+                val todayCompletion = completionDao.getCompletion(habit.id, todayString)
+                val isScheduledToday = isHabitScheduledForDate(habit, todayString, todayDayOfWeek)
+
+                if (lastScheduledCompletion?.completed != true &&
+                    habit.currentStreak > 0) {
+                    if ((isScheduledToday && todayCompletion?.completed != true) || !isScheduledToday) {
                         habitDao.updateStreak(habit.id, 0, habit.bestStreak, System.currentTimeMillis())
                     }
                 }
@@ -111,15 +128,10 @@ class HabitRepository(
 
     suspend fun resetWeeklyProgressIfNeeded(userId: String) {
         val today = LocalDate.now()
-        val startOfWeek = today.with(java.time.DayOfWeek.MONDAY)
 
         val habits = habitDao.getAllHabitsOnce(userId)
         habits.forEach { habit ->
-            val lastUpdate = java.time.Instant.ofEpochMilli(habit.updatedAt)
-                .atZone(java.time.ZoneId.systemDefault())
-                .toLocalDate()
-
-            if (lastUpdate.isBefore(startOfWeek)) {
+            if (shouldResetWeeklyProgress(habit, today)) {
                 habitDao.updateProgress(
                     habitId = habit.id,
                     progress = 0f,
@@ -130,57 +142,111 @@ class HabitRepository(
         }
     }
 
-    // get habit by id and user id
-    suspend fun getHabitByIdByUserId(habitId: String, userId: String) : HabitEntity? {
+    suspend fun getHabitByIdByUserId(habitId: String, userId: String): HabitEntity? {
         return habitDao.getHabitByIdAndByUserId(userId, habitId)
     }
 
-    // insert
-    suspend fun insertHabit(habit: HabitEntity){
+    suspend fun insertHabit(habit: HabitEntity) {
         habitDao.insertHabit(habit)
     }
 
-    // update
-    suspend fun updateHabit(habit: HabitEntity){
+    suspend fun updateHabit(habit: HabitEntity) {
         habitDao.updateHabit(habit)
     }
 
-    // delete
-    suspend fun deleteHabit(habitId: String){
+    suspend fun deleteHabit(habitId: String) {
         habitDao.deleteHabit(habitId)
     }
 
-
-
-    private suspend fun calculateCurrentStreak(habitId: String, fromDate: String): Int {
+    private suspend fun calculateCurrentStreak(habitId: String, fromDate: String, habit: HabitEntity): Int {
         var streak = 0
         var currentDate = LocalDate.parse(fromDate).minusDays(1)
+        var daysChecked = 0
 
-        while (true) {
-            val completion = completionDao.getCompletion(habitId, currentDate.toString())
-            if (completion?.completed == true) {
+        while (daysChecked < 365) {
+            val dayOfWeek = currentDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
+
+            if (isHabitScheduledForDate(habit, currentDate.toString(), dayOfWeek)) {
+                val completion = completionDao.getCompletion(habitId, currentDate.toString())
+                if (completion?.completed == true) {
+                    streak++
+                    currentDate = currentDate.minusDays(1)
+                } else {
+                    break
+                }
+            } else {
+                currentDate = currentDate.minusDays(1)
+            }
+            daysChecked++
+        }
+        return streak
+    }
+
+    suspend fun calculateAndUpdateGlobalStreak(userId: String): Int {
+        val today = LocalDate.now()
+        val todayString = today.toString()
+        val todayDayOfWeek = today.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
+
+        val allHabits = habitDao.getAllHabitsOnce(userId)
+
+        if (allHabits.isEmpty()) return 0
+
+        val scheduledToday = allHabits.filter {
+            isHabitScheduledForDate(it, todayString, todayDayOfWeek)
+        }
+
+        if (scheduledToday.isEmpty()) {
+            return calculateStreakBeforeToday(userId, today.minusDays(1), allHabits)
+        }
+
+        val completionsToday = completionDao.getCompletionsByDateOnce(todayString)
+        val doneCountToday = scheduledToday.count { habit ->
+            completionsToday.any { it.habitId == habit.id && it.completed }
+        }
+
+        val isTodayPassed = doneCountToday.toFloat() / scheduledToday.size >= 0.5f
+
+        if (!isTodayPassed) {
+            return calculateStreakBeforeToday(userId, today.minusDays(1), allHabits)
+        }
+
+        return 1 + calculateStreakBeforeToday(userId, today.minusDays(1), allHabits)
+    }
+
+    private suspend fun calculateStreakBeforeToday(
+        userId: String,
+        fromDate: LocalDate,
+        allHabits: List<HabitEntity>
+    ): Int {
+        var streak = 0
+        var currentDate = fromDate
+
+        while (streak < 365) {
+            val dateString = currentDate.toString()
+            val dayOfWeek = currentDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
+
+            val scheduled = allHabits.filter {
+                isHabitScheduledForDate(it, dateString, dayOfWeek)
+            }
+
+            if (scheduled.isEmpty()) {
+                currentDate = currentDate.minusDays(1)
+                continue
+            }
+
+            val completions = completionDao.getCompletionsByDateOnce(dateString)
+            val doneCount = scheduled.count { habit ->
+                completions.any { it.habitId == habit.id && it.completed }
+            }
+
+            if (doneCount.toFloat() / scheduled.size >= 0.5f) {
                 streak++
                 currentDate = currentDate.minusDays(1)
             } else {
                 break
             }
         }
+
         return streak
     }
-
-    private fun isHabitForDay(habit: HabitEntity, date: String, dayOfWeek: String): Boolean {
-        return when (habit.frequency) {
-            "Every day" -> true
-            "Weekdays" -> dayOfWeek !in listOf("Sat", "Sun")
-            "Weekends" -> dayOfWeek in listOf("Sat", "Sun")
-            "Every other day" -> {
-                val startOfYear = LocalDate.of(LocalDate.parse(date).year, 1, 1)
-                val dayIndex = LocalDate.parse(date).toEpochDay() - startOfYear.toEpochDay()
-                (dayIndex % 2).toInt() == 0
-            }
-            "Custom" -> habit.customDays?.split(",")?.contains(dayOfWeek) == true
-            else -> true
-        }
-    }
-
 }

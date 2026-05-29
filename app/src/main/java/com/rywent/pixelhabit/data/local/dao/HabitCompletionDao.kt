@@ -17,6 +17,22 @@ interface HabitCompletionDao {
     @Query("UPDATE habit_completions SET completed = :completed, completedAt = :completedAt WHERE habitId = :habitId AND date = :date")
     suspend fun updateCompletion(habitId: String, date: String, completed: Boolean, completedAt: Long?)
 
+    // get week completion
+    @Query("""
+    SELECT * FROM habit_completions 
+    WHERE date BETWEEN :startDate AND :endDate 
+    AND completed = 1
+""")
+    suspend fun getCompletionsBetween(startDate: String, endDate: String): List<HabitCompletionEntity>
+
+    @Query("""
+    SELECT * FROM habit_completions 
+    WHERE date BETWEEN :startDate AND :endDate 
+    AND completed = 1
+""")
+    fun getCompletionsBetweenFlow(startDate: String, endDate: String): Flow<List<HabitCompletionEntity>>
+
+
     // get marker for a specific day
     @Query("SELECT * FROM habit_completions WHERE habitId = :habitId AND date = :date")
     suspend fun getCompletion(habitId: String, date: String): HabitCompletionEntity?
@@ -24,6 +40,9 @@ interface HabitCompletionDao {
     //get all marks for the day
     @Query("SELECT * FROM habit_completions WHERE date = :date")
     fun getCompletionsByDate(date: String): Flow<List<HabitCompletionEntity>>
+
+    @Query("SELECT * FROM habit_completions WHERE date = :date")
+    suspend fun getCompletionsByDateOnce(date: String): List<HabitCompletionEntity>
 
     // get habit history
     @Query("SELECT * FROM habit_completions WHERE habitId = :habitId ORDER BY date DESC")

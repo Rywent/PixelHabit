@@ -42,6 +42,20 @@ interface HabitDao {
     """)
     fun getHabitsForToday(userId: String, today: String): Flow<List<HabitWithCompletion>>
 
+    // get today habits once
+    @Query("""
+    SELECT h.*, 
+           COALESCE(c.completed, 0) AS isCompleted,
+           c.completedAt
+    FROM habits h
+    LEFT JOIN habit_completions c 
+        ON h.id = c.habitId AND c.date = :today
+    WHERE h.userId = :userId
+    GROUP BY h.id
+    ORDER BY h.createdAt DESC
+""")
+    suspend fun getHabitsForTodayOnce(userId: String, today: String): List<HabitWithCompletion>
+
     // acquire habits based on the time of day
     @Query("SELECT * FROM habits WHERE userId = :userId AND timeOfDay = :timeOfDay")
     fun getHabitsByTimeOfDay(userId: String, timeOfDay: String): Flow<List<HabitEntity>>

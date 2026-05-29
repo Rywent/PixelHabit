@@ -46,6 +46,7 @@ fun HabitData.toEntity(userId: String): HabitEntity {
     return HabitEntity(
         id = id,
         name = name,
+        description = description,
         iconPath = icon.toPath(),
         timeOfDayIconPath = timeOfDayIcon.toPath(),
         lifestyleIconPath = lifestyleIcon?.toPath(),

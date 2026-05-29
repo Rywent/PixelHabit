@@ -159,3 +159,11 @@ fun HomeScreen(
         }
     }
 }
+
+
+data class UserData(
+    val id: String,
+    val name: String,
+    val currentStreak: Int,
+    val bestStreak: Int
+)

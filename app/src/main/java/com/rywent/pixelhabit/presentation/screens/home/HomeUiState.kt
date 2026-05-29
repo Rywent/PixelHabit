@@ -9,6 +9,7 @@ data class HomeUiState(
     val userName: String = "",
     val currentDate: String = "",
     val currentStreak: Int = 0,
+    val bestStreak: Int = 0,
     val weekStat: List<DayStat> = emptyList(),
     val todayHabits: List<TodayHabitData> = emptyList(),
     val lifestyles: List<LifestyleData> = emptyList(),
