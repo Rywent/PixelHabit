@@ -1,7 +1,13 @@
 package com.rywent.pixelhabit.presentation.screens.home
 
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,10 +19,15 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -25,6 +36,7 @@ import androidx.navigation.NavController
 import com.rywent.pixelhabit.presentation.components.habit.HabitTodayCard
 import com.rywent.pixelhabit.presentation.components.habit.TodayHabitData
 import com.rywent.pixelhabit.presentation.components.panels.CreateHabitPanel
+import com.rywent.pixelhabit.presentation.components.panels.StreakPanelTwo
 import com.rywent.pixelhabit.presentation.screens.about.AboutBottomSheet
 import com.rywent.pixelhabit.presentation.screens.home.components.AddHabitButton
 import com.rywent.pixelhabit.presentation.screens.home.components.HeaderButtons
@@ -136,6 +148,7 @@ fun HomeScreen(
             }
         }
 
+
         HeaderButtons(
             onClickSettings = {},
             onClickAppVersion = {viewModel.onAboutClicked()},
@@ -146,6 +159,40 @@ fun HomeScreen(
 
         if(uiState.showAboutSheet){
             AboutBottomSheet(true, onDismiss = {viewModel.onDismissAbout()})
+        }
+
+        AnimatedVisibility(
+            visible = uiState.showStreakPanel && uiState.streakPanelVisible,
+            enter = slideInVertically(
+                initialOffsetY = { -it },
+                animationSpec = tween(
+                    durationMillis = 500,
+                    easing = FastOutSlowInEasing
+                )
+            ) + fadeIn(animationSpec = tween(500)),
+            exit = slideOutVertically(
+                targetOffsetY = { -it },
+                animationSpec = tween(
+                    durationMillis = 500,
+                    easing = FastOutSlowInEasing
+                )
+            ) + fadeOut(animationSpec = tween(500)),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 0.dp)
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .shadow(8.dp, RoundedCornerShape(16.dp)),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                StreakPanelTwo(streak = uiState.streakPanelValue, isResetMode = uiState.isStreakReset )
+            }
         }
 
         if (uiState.showCreateHabitPanel) {

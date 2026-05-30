@@ -15,5 +15,9 @@ data class HomeUiState(
     val lifestyles: List<LifestyleData> = emptyList(),
     val isTodayHabitsExpanded: Boolean = false,
     val showAboutSheet: Boolean = false,
-    val showCreateHabitPanel: Boolean = false
+    val showCreateHabitPanel: Boolean = false,
+    val streakPanelValue: Int = 0,
+    val streakPanelVisible: Boolean = false,
+    val showStreakPanel: Boolean = false,
+    val isStreakReset: Boolean = false
 )

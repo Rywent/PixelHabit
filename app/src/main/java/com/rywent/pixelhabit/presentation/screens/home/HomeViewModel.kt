@@ -3,7 +3,6 @@ package com.rywent.pixelhabit.presentation.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rywent.pixelhabit.data.local.entity.HabitCompletionEntity
-import com.rywent.pixelhabit.data.local.entity.UserEntity
 import com.rywent.pixelhabit.data.mapper.toEntity
 import com.rywent.pixelhabit.data.mapper.toLifestyleData
 import com.rywent.pixelhabit.data.mapper.toTodayHabitData
@@ -14,12 +13,15 @@ import com.rywent.pixelhabit.data.utils.isHabitScheduledForDate
 import com.rywent.pixelhabit.presentation.components.habit.HabitData
 import com.rywent.pixelhabit.presentation.screens.home.components.DayStat
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 import javax.inject.Inject
@@ -35,6 +37,16 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     private val userId = "default_user"
+    private var previousStreak: Int? = null
+    private var streakPanelJob: Job? = null
+    private var isFirstLoad = true // Флаг первой загрузки
+    private var isAppInForeground = true // Приложение активно
+
+    companion object {
+        private const val STREAK_PANEL_DISPLAY_DURATION = 4000L
+        private const val STREAK_PANEL_EXIT_ANIMATION_DURATION = 500L
+        private const val STREAK_RESET_PANEL_DURATION = 7000L
+    }
 
     init {
         initializeUser()
@@ -50,7 +62,7 @@ class HomeViewModel @Inject constructor(
                 it.copy(
                     userName = getUserName(),
                     currentDate = getCurrentDate(),
-                    currentStreak = user.currentStreak,
+                    currentStreak = user.currentStreak
                 )
             }
         }
@@ -60,22 +72,48 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             lifestyleRepository.getLifestylesByUserId(userId).collect { lifestyles ->
                 _uiState.update {
-                    it.copy(lifestyles = lifestyles.map { lifestyle -> lifestyle.toLifestyleData() })
+                    it.copy(lifestyles = lifestyles.map { it.toLifestyleData() })
                 }
             }
         }
     }
+
     private fun collectUserStreak() {
         viewModelScope.launch {
             userRepository.getUserFlow(userId).collect { user ->
-                user?.let {
-                    _uiState.update { state ->
-                        state.copy(
-                            currentStreak = it.currentStreak,
-                            bestStreak = it.bestStreak
-                        )
-                    }
-                }
+                user?.let { handleStreakUpdate(it.currentStreak) }
+            }
+        }
+    }
+
+    private fun handleStreakUpdate(newStreak: Int) {
+        val isIncrease = previousStreak != null && newStreak > previousStreak!!
+        val isReset = previousStreak != null && newStreak < previousStreak!!
+        val previousValue = previousStreak
+
+        previousStreak = newStreak
+
+        _uiState.update { state ->
+            state.copy(
+                currentStreak = newStreak,
+                bestStreak = maxOf(newStreak, state.bestStreak)
+            )
+        }
+
+        when {
+            // Стрик увеличился - всегда показываем
+            isIncrease -> {
+                isFirstLoad = false
+                showStreakPanel(newStreak, isResetMode = false)
+            }
+            // Стрик сбросился только при первой загрузке приложения
+            isReset && isFirstLoad -> {
+                isFirstLoad = false
+                showStreakPanel(previousValue!!, isResetMode = true)
+            }
+            // Стрик сбросился во время использования - игнорируем
+            isReset && !isFirstLoad -> {
+                // Ничего не делаем
             }
         }
     }
@@ -84,38 +122,39 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             habitRepository.resetWeeklyProgressIfNeeded(userId)
             habitRepository.checkAndResetStreaks(userId)
-
             updateGlobalStreak()
 
             val todayDateString = LocalDate.now().toString()
             val dayOfWeek = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
+            val (startOfWeek, endOfWeek) = getWeekRange()
 
-            val today = LocalDate.now()
-            val startOfWeek = today.with(java.time.DayOfWeek.MONDAY).toString()
-            val endOfWeek = today.with(java.time.DayOfWeek.SUNDAY).toString()
-
-            launch {
-                habitRepository.getWeekCompletionsFlow(startOfWeek, endOfWeek)
-                    .collect { completions ->
-                        val weekStats = calculateWeekStats(completions)
-                        _uiState.update { it.copy(weekStat = weekStats) }
-                    }
-            }
-
-            habitRepository.getHabitsForToday(userId, todayDateString)
-                .collect { habitWithCompletions ->
-                    val todayHabits = habitWithCompletions
-                        .filter { isHabitScheduledForDate(it.habit, todayDateString, dayOfWeek) }
-                        .map { it.toTodayHabitData() }
-
-                    _uiState.update { state ->
-                        state.copy(todayHabits = todayHabits)
-                    }
-                }
+            launch { collectWeekCompletions(startOfWeek, endOfWeek) }
+            collectTodayHabits(todayDateString, dayOfWeek)
         }
     }
 
+    private fun getWeekRange(): Pair<String, String> {
+        val today = LocalDate.now()
+        val startOfWeek = today.with(java.time.DayOfWeek.MONDAY)
+        val endOfWeek = today.with(java.time.DayOfWeek.SUNDAY)
+        return startOfWeek.toString() to endOfWeek.toString()
+    }
 
+    private suspend fun collectWeekCompletions(startOfWeek: String, endOfWeek: String) {
+        habitRepository.getWeekCompletionsFlow(startOfWeek, endOfWeek).collect { completions ->
+            _uiState.update { it.copy(weekStat = calculateWeekStats(completions)) }
+        }
+    }
+
+    private suspend fun collectTodayHabits(todayDateString: String, dayOfWeek: String) {
+        habitRepository.getHabitsForToday(userId, todayDateString).collect { habits ->
+            val todayHabits = habits
+                .filter { isHabitScheduledForDate(it.habit, todayDateString, dayOfWeek) }
+                .map { it.toTodayHabitData() }
+
+            _uiState.update { it.copy(todayHabits = todayHabits) }
+        }
+    }
 
     fun onHabitCheckboxClicked(id: String, isCompleted: Boolean) {
         viewModelScope.launch {
@@ -133,8 +172,6 @@ class HomeViewModel @Inject constructor(
     fun onHabitClick(id: String) {
         val habit = _uiState.value.todayHabits.find { it.id == id }
     }
-
-
 
     fun onSettingsClicked() {
 
@@ -160,38 +197,53 @@ class HomeViewModel @Inject constructor(
         _uiState.update { it.copy(isTodayHabitsExpanded = !it.isTodayHabitsExpanded) }
     }
 
+    private fun showStreakPanel(streak: Int, isResetMode: Boolean) {
+        streakPanelJob?.cancel()
 
+        streakPanelJob = viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    showStreakPanel = true,
+                    streakPanelValue = streak,
+                    streakPanelVisible = true,
+                    isStreakReset = isResetMode
+                )
+            }
+
+            val duration = if (isResetMode) STREAK_RESET_PANEL_DURATION else STREAK_PANEL_DISPLAY_DURATION
+            delay(duration)
+
+            _uiState.update { it.copy(streakPanelVisible = false) }
+            delay(STREAK_PANEL_EXIT_ANIMATION_DURATION)
+
+            _uiState.update {
+                it.copy(
+                    showStreakPanel = false,
+                    isStreakReset = false
+                )
+            }
+        }
+    }
 
     private fun getUserName(): String = "Rywent"
 
     private fun getCurrentDate(): String {
         val today = LocalDate.now()
-        val formatter = java.time.format.DateTimeFormatter.ofPattern(
-            "EEEE, d MMMM", java.util.Locale.getDefault()
-        )
+        val formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())
         return "Today's ${today.format(formatter).replaceFirstChar { it.uppercase() }}"
     }
 
-    private suspend fun loadWeekStatistics() {
-        val completions = habitRepository.getWeekCompletions(userId)
-        val weekStats = calculateWeekStats(completions)
-        _uiState.update { it.copy(weekStat = weekStats) }
-    }
     private fun calculateWeekStats(completions: List<HabitCompletionEntity>): List<DayStat> {
         val today = LocalDate.now()
         val startOfWeek = today.with(java.time.DayOfWeek.MONDAY)
-
         val dayNames = listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")
 
         return dayNames.mapIndexed { index, shortName ->
             val date = startOfWeek.plusDays(index.toLong())
-
-            val value = if (date.isAfter(today)) {
-                -1
-            } else {
-                completions.count { it.date == date.toString() }
+            val value = when {
+                date.isAfter(today) -> -1
+                else -> completions.count { it.date == date.toString() }
             }
-
             DayStat(shortName = shortName, value = value)
         }
     }
@@ -203,4 +255,3 @@ class HomeViewModel @Inject constructor(
         userRepository.updateStreak(userId, streak, bestStreak)
     }
 }
-
