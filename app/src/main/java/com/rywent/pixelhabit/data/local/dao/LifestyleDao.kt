@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.rywent.pixelhabit.data.local.entity.HabitEntity
 import com.rywent.pixelhabit.data.local.entity.LifestyleEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -24,6 +25,12 @@ interface LifestyleDao {
     @Query("select * from lifestyles where userId =:userId and id = :id")
     suspend fun getLifestyleByIdAndByUserId(userId: String, id: String): LifestyleEntity?
 
+    @Query("select * from lifestyles where name = :name and userId = :userId limit 1")
+    suspend fun getLifestyleByNameAndUserId(name: String, userId: String): LifestyleEntity?
+
+    @Query("select * from lifestyles where id = 'default_other' and userId = :userId limit 1")
+    suspend fun getDefaultOtherLifestyle(userId: String): LifestyleEntity?
+
     // create
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertLifestyle(lifestyle: LifestyleEntity)
@@ -35,4 +42,7 @@ interface LifestyleDao {
     // delete by id
     @Query("delete from lifestyles where id = :id")
     suspend fun deleteLifestyle(id: String)
+
+    @Query("delete from lifestyles")
+    suspend fun deleteAll()
 }

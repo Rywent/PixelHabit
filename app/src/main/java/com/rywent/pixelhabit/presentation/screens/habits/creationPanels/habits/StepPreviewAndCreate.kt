@@ -1,16 +1,13 @@
 package com.rywent.pixelhabit.presentation.screens.habits.creationPanels.habits
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -26,10 +23,13 @@ fun StepPreviewAndCreate(
     selectedIcon: ImageVector,
     selectedColor: Color,
     selectedCategory: String,
+    selectedCategoryColor: Color,
+    selectedCategoryIcon: ImageVector?,
     selectedFrequency: String,
     selectedTimeOfDay: String,
     selectedSpecificTime: String?,
     selectedCustomDays: List<String> = emptyList(),
+    isEditing: Boolean = false,
     onCreateHabit: () -> Unit
 ) {
     val weeklyGoal = when (selectedFrequency) {
@@ -76,7 +76,15 @@ fun StepPreviewAndCreate(
                         "weekdays" -> "Weekdays"
                         "weekends" -> "Weekends"
                         "every_other_day" -> "Every other day"
-                        else -> "Custom"
+                        "custom" -> {
+                            val dayShortcuts = mapOf(
+                                "Monday" to "Mn", "Tuesday" to "Tu", "Wednesday" to "Wd",
+                                "Thursday" to "Th", "Friday" to "Fr", "Saturday" to "St", "Sunday" to "Sn"
+                            )
+                            selectedCustomDays.take(3).joinToString(",") { dayShortcuts[it] ?: it.take(2) } +
+                                    if (selectedCustomDays.size > 3) ", +${selectedCustomDays.size - 3}d" else ""
+                        }
+                        else -> "Every day"
                     },
                     timeOfDay = selectedTimeOfDay,
                     timeOfDayIcon = when (selectedTimeOfDay) {
@@ -87,8 +95,9 @@ fun StepPreviewAndCreate(
                     },
                     specificTime = selectedSpecificTime,
                     lifestyleName = selectedCategory,
-                    lifestyleColor = selectedColor,
-                    lifestyleIcon = null,
+                    lifestyleColor = selectedCategoryColor,
+                    habitColor = selectedColor,
+                    lifestyleIcon = selectedCategoryIcon,
                     weeklyProgress = 0f,
                     weeklyDone = 0,
                     weeklyGoal = weeklyGoal,
@@ -112,7 +121,7 @@ fun StepPreviewAndCreate(
             )
         ) {
             Text(
-                text = "Create Habit",
+                text = if (isEditing) "Save Changes" else "Create Habit",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
             )

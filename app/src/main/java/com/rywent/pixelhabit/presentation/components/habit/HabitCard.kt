@@ -79,14 +79,14 @@ fun HabitCard(
                             .size(64.dp)
                             .clip(CircleShape)
                             .background(
-                                habit.lifestyleColor.copy(alpha = 0.12f)
+                                habit.habitColor.copy(alpha = 0.12f)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = habit.icon,
                             contentDescription = null,
-                            tint = habit.lifestyleColor,
+                            tint = habit.habitColor,
                             modifier = Modifier.size(34.dp)
                         )
                     }
@@ -236,11 +236,13 @@ data class HabitData(
     val customDays: String? = null,
     val lifestyleName: String,
     val lifestyleColor: Color,
+    val habitColor: Color,
     val lifestyleIcon: ImageVector?,
     val weeklyProgress: Float,
     val weeklyDone: Int,
     val weeklyGoal: Int,
     val currentStreak: Int,
     val bestStreak: Int,
-    val isCompletedToday: Boolean = false
+    val isCompletedToday: Boolean = false,
+    val lifestyleId: String? = null
 )

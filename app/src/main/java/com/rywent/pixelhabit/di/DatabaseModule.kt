@@ -6,7 +6,9 @@ import com.rywent.pixelhabit.data.local.AppDatabase
 import com.rywent.pixelhabit.data.local.dao.HabitCompletionDao
 import com.rywent.pixelhabit.data.local.dao.HabitDao
 import com.rywent.pixelhabit.data.local.dao.LifestyleDao
+import com.rywent.pixelhabit.data.local.dao.QuestDao
 import com.rywent.pixelhabit.data.local.dao.UserDao
+import com.rywent.pixelhabit.data.utils.BackupManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,6 +33,15 @@ object DatabaseModule {
     }
 
     @Provides
+    @Singleton
+    fun provideBackupManager(
+        @ApplicationContext context: Context,
+        database: AppDatabase
+    ): BackupManager {
+        return BackupManager(context, database)
+    }
+
+    @Provides
     fun provideUserDao(database: AppDatabase): UserDao {
         return database.userDao()
     }
@@ -48,5 +59,10 @@ object DatabaseModule {
     @Provides
     fun provideHabitCompletionDao(database: AppDatabase): HabitCompletionDao {
         return database.habitCompletionDao()
+    }
+
+    @Provides
+    fun provideQuestDao(database: AppDatabase): QuestDao{
+        return database.questDao()
     }
 }

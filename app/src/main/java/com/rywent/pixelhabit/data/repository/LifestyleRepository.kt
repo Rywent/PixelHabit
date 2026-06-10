@@ -18,8 +18,12 @@ class LifestyleRepository(
     }
 
     // get lifestyle by id and user id
-    suspend fun getLifestyleByIdAndUserId(lifestyleId: String, userId: String): LifestyleEntity? {
-        return lifestyleDao.getLifestyleByIdAndByUserId(userId, lifestyleId)
+    suspend fun getLifestyleByNameAndUserId(name: String, userId: String): LifestyleEntity? {
+        return lifestyleDao.getLifestyleByNameAndUserId(name, userId)
+    }
+
+    suspend fun getDefaultOtherLifestyle(userId: String): LifestyleEntity? {
+        return lifestyleDao.getDefaultOtherLifestyle(userId)
     }
 
     // create

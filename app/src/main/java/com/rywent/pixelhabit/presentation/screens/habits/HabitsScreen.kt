@@ -1,8 +1,6 @@
 package com.rywent.pixelhabit.presentation.screens.habits
 
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -35,13 +32,17 @@ import androidx.navigation.NavController
 import com.rywent.pixelhabit.presentation.components.customElements.AddItemButton
 import com.rywent.pixelhabit.presentation.components.panels.CreateHabitPanel
 import com.rywent.pixelhabit.presentation.components.panels.CreateLifestylePanel
+import com.rywent.pixelhabit.presentation.components.panels.CreateQuestPanel
+import com.rywent.pixelhabit.presentation.components.panels.HabitFormPanel
+import com.rywent.pixelhabit.presentation.components.panels.HabitInfoPanel
+import com.rywent.pixelhabit.presentation.components.panels.LifestyleFormPanel
+import com.rywent.pixelhabit.presentation.components.panels.LifestyleInfoPanel
+import com.rywent.pixelhabit.presentation.screens.habits.components.FilterPanel
 import com.rywent.pixelhabit.presentation.screens.habits.components.HabitsTabSwitcher
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.HabitsSubScreen
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.LifestyleSubScreen
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.QuestsSubScreen
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -122,6 +123,7 @@ fun HabitsScreen(
                     when (page) {
                         0 -> HabitsSubScreen(
                             navigateToHabitDetails = { viewModel.onHabitClick(it) },
+                            onFilterClick = { viewModel.onFilterClick() },
                             uiState = uiState
                         )
                         1 -> LifestyleSubScreen(
@@ -139,6 +141,7 @@ fun HabitsScreen(
             }
         }
 
+        // Create Habit
         if (uiState.showCreateHabitPanel) {
             CreateHabitPanel(
                 onDismiss = { viewModel.onDismissCreateHabitPanel() },
@@ -148,15 +151,88 @@ fun HabitsScreen(
                 }
             )
         }
+
+        // Create Lifestyle
         if(uiState.showCreateLifestylePanel){
             CreateLifestylePanel(
-                onDismiss = {viewModel.onDismissCreateLifestylePanel()},
-                onLifestyleCreated = {lifestyle ->
+                onDismiss = { viewModel.onDismissCreateLifestylePanel() },
+                onLifestyleCreated = { lifestyle ->
                     viewModel.createLifestyle(lifestyle)
+                },
+                existingLifestyles = uiState.lifestyles
+            )
+        }
+
+        // Create Quest
+        if(uiState.showCreateQuestPanel){
+            CreateQuestPanel(
+                onDismiss = { viewModel.onDismissCreateQuestPanel() },
+                onQuestCreated = { quest ->
+                    viewModel.createQuest(quest)
                 }
             )
         }
 
+        // Habit details
+        if (uiState.showHabitDetailsPanel && uiState.selectedHabit != null) {
+            HabitInfoPanel(
+                habit = uiState.selectedHabit!!,
+                completions = uiState.selectedHabitCompletions,
+                onDismiss = { viewModel.onHabitDetailDismiss() },
+                onEdit = { habit -> viewModel.onHabitEditClick(habit) },
+                onDelete = { habit -> viewModel.onHabitDelete(habit) }
+            )
+        }
+
+        // Lifestyle details
+        if (uiState.showLifestyleDetailsPanel && uiState.selectedLifestyle != null) {
+            LifestyleInfoPanel(
+                lifestyle = uiState.selectedLifestyle!!,
+                onDismiss = { viewModel.onLifestyleDetailDismiss() },
+                onEdit = { lifestyle -> viewModel.onLifestyleEditClick(lifestyle) },
+                onDelete = { lifestyle -> viewModel.onLifestyleDelete(lifestyle) },
+                totalHabitsCount = uiState.totalLifestyleHabitCount,
+                completedHabitsToday = uiState.lifestyleHabitsCompletedToday,
+                weeklyActivity = uiState.lifestyleWeeklyActivity,
+                monthlyGoal = uiState.lifestyleMonthlyGoal,
+                monthlyProgress = uiState.lifestyleMonthlyProgress
+            )
+        }
+
+        // Edit Habit
+        if (uiState.showEditHabitPanel && uiState.editingHabit != null) {
+            HabitFormPanel(
+                onDismiss = { viewModel.onDismissEditHabitPanel() },
+                lifestyles = uiState.lifestyles,
+                onSave = { updatedHabit ->
+                    viewModel.updateHabit(updatedHabit)
+                },
+                editingHabit = uiState.editingHabit
+            )
+        }
+
+        // Edit Lifestyle
+        if (uiState.showEditLifestylePanel && uiState.editingLifestyle != null) {
+            LifestyleFormPanel(
+                onDismiss = { viewModel.onDismissEditLifestylePanel() },
+                onSave = { updatedLifestyle ->
+                    viewModel.updateLifestyle(updatedLifestyle)
+                },
+                editingLifestyle = uiState.editingLifestyle,
+                existingLifestyles = uiState.lifestyles
+            )
+        }
+
+
+        // filter
+        if (uiState.showFilterPanel) {
+            FilterPanel(
+                currentFilter = uiState.currentFilter,
+                lifestyles = uiState.lifestyles,
+                onFilterChange = { filter -> viewModel.onFilterSelected(filter) },
+                onDismiss = { viewModel.onFilterDismiss() }
+            )
+        }
         AddItemButton(
             modifier = Modifier
                 .align(Alignment.BottomEnd)

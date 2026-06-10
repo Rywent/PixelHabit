@@ -19,14 +19,13 @@ interface UserDao {
     @Query("select * from users")
     fun getAllUsers(): Flow<List<UserEntity>>
 
-    @Query("UPDATE users SET currentStreak = :streak, bestStreak = :bestStreak, updatedAt = :updatedAt WHERE id = :userId")
+    @Query("update users set currentStreak = :streak, bestStreak = :bestStreak, updatedAt = :updatedAt where id = :userId")
     suspend fun updateStreak(userId: String, streak: Int, bestStreak: Int, updatedAt: Long)
 
-    // 🔥 Получение стрика
-    @Query("SELECT currentStreak FROM users WHERE id = :userId")
+    @Query("select currentStreak from users where id = :userId")
     fun getStreakFlow(userId: String): Flow<Int?>
 
-    @Query("SELECT * FROM users WHERE id = :userId")
+    @Query("select * from users where id = :userId")
     fun getUserFlow(userId: String): Flow<UserEntity?>
 
 
@@ -42,7 +41,20 @@ interface UserDao {
     @Query("update users set name =:name where id =:userId")
     suspend fun updateUserName(userId: String, name: String)
 
+    @Query("update users set habitRemindersEnabled = :enabled where id = :userId")
+    suspend fun updateHabitRemindersEnabled(userId: String, enabled: Boolean)
+
+    @Query("update users set streakNotificationsEnabled = :enabled where id = :userId")
+    suspend fun updateStreakNotificationsEnabled(userId: String, enabled: Boolean)
+
+    @Query("update users set motivationEnabled = :enabled where id = :userId")
+    suspend fun updateMotivationEnabled(userId: String, enabled: Boolean)
+
+
     // delete
     @Query("delete from users where id = :userId")
     suspend fun deleteUser(userId: String)
+
+    @Query("delete from users")
+    suspend fun deleteAll()
 }

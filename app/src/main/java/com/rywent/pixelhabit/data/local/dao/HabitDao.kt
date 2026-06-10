@@ -17,7 +17,7 @@ interface HabitDao {
     @Query("select * from habits where userId = :userId")
     fun getAllHabits(userId: String): Flow<List<HabitEntity>>
 
-    @Query("SELECT * FROM habits WHERE userId = :userId")
+    @Query("select * from habits where userId = :userId")
     suspend fun getAllHabitsOnce(userId: String): List<HabitEntity>
 
     // get habit by id
@@ -28,44 +28,51 @@ interface HabitDao {
     @Query("select * from habits where userId = :userId and id = :id")
     suspend fun getHabitByIdAndByUserId(userId: String, id: String) : HabitEntity?
 
+    @Query("select * from habits where lifestyleId = :lifestyleId and userId = :userId")
+    fun getHabitsByLifestyleId(lifestyleId: String, userId: String): Flow<List<HabitEntity>>
+
+    // НОВЫЙ МЕТОД - получить привычки по lifestyleId (suspend версия)
+    @Query("select * from habits where lifestyleId = :lifestyleId and userId = :userId")
+    suspend fun getHabitsByLifestyleIdOnce(lifestyleId: String, userId: String): List<HabitEntity>
+
     // get today habit
     @Query("""
-        SELECT h.*, 
-               COALESCE(c.completed, 0) AS isCompleted,
+        select h.*, 
+               coalesce(c.completed, 0) as isCompleted,
                c.completedAt
-        FROM habits h
-        LEFT JOIN habit_completions c 
-            ON h.id = c.habitId AND c.date = :today
-        WHERE h.userId = :userId
-        GROUP BY h.id
-        ORDER BY h.createdAt DESC
+        from habits h
+        left join habit_completions c 
+            on h.id = c.habitId and c.date = :today
+        where h.userId = :userId
+        group by h.id
+        order by h.createdAt desc
     """)
     fun getHabitsForToday(userId: String, today: String): Flow<List<HabitWithCompletion>>
 
     // get today habits once
     @Query("""
-    SELECT h.*, 
-           COALESCE(c.completed, 0) AS isCompleted,
+    select h.*, 
+           coalesce(c.completed, 0) as isCompleted,
            c.completedAt
-    FROM habits h
-    LEFT JOIN habit_completions c 
-        ON h.id = c.habitId AND c.date = :today
-    WHERE h.userId = :userId
-    GROUP BY h.id
-    ORDER BY h.createdAt DESC
+    from habits h
+    left join habit_completions c 
+        on h.id = c.habitId and c.date = :today
+    where h.userId = :userId
+    group by h.id
+    order by h.createdAt desc
 """)
     suspend fun getHabitsForTodayOnce(userId: String, today: String): List<HabitWithCompletion>
 
     // acquire habits based on the time of day
-    @Query("SELECT * FROM habits WHERE userId = :userId AND timeOfDay = :timeOfDay")
+    @Query("select * from habits where userId = :userId and timeOfDay = :timeOfDay")
     fun getHabitsByTimeOfDay(userId: String, timeOfDay: String): Flow<List<HabitEntity>>
 
     // update progress
-    @Query("UPDATE habits SET weeklyProgress = :progress, weeklyDone = :done, updatedAt = :updatedAt WHERE id = :habitId")
+    @Query("update habits set weeklyProgress = :progress, weeklyDone = :done, updatedAt = :updatedAt where id = :habitId")
     suspend fun updateProgress(habitId: String, progress: Float, done: Int, updatedAt: Long)
 
     // update streak
-    @Query("UPDATE habits SET currentStreak = :streak, bestStreak = :bestStreak, updatedAt = :updatedAt WHERE id = :habitId")
+    @Query("update habits set currentStreak = :streak, bestStreak = :bestStreak, updatedAt = :updatedAt where id = :habitId")
     suspend fun updateStreak(habitId: String, streak: Int, bestStreak: Int, updatedAt: Long)
     // create habit
     @Insert(onConflict = OnConflictStrategy.ABORT)
@@ -78,4 +85,7 @@ interface HabitDao {
     // delete
     @Query("delete from habits where id = :id")
     suspend fun deleteHabit(id: String)
+
+    @Query("delete from habits")
+    suspend fun deleteAll()
 }

@@ -36,7 +36,7 @@ fun AboutBottomSheet(
     viewModel: AboutViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     if (isVisible) {
         ModalBottomSheet(

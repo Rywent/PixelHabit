@@ -7,10 +7,12 @@ import androidx.room.RoomDatabase
 import com.rywent.pixelhabit.data.local.dao.HabitCompletionDao
 import com.rywent.pixelhabit.data.local.dao.HabitDao
 import com.rywent.pixelhabit.data.local.dao.LifestyleDao
+import com.rywent.pixelhabit.data.local.dao.QuestDao
 import com.rywent.pixelhabit.data.local.dao.UserDao
 import com.rywent.pixelhabit.data.local.entity.HabitCompletionEntity
 import com.rywent.pixelhabit.data.local.entity.HabitEntity
 import com.rywent.pixelhabit.data.local.entity.LifestyleEntity
+import com.rywent.pixelhabit.data.local.entity.QuestEntity
 import com.rywent.pixelhabit.data.local.entity.UserEntity
 
 
@@ -19,7 +21,8 @@ import com.rywent.pixelhabit.data.local.entity.UserEntity
         UserEntity::class,
         HabitEntity::class,
         LifestyleEntity::class,
-        HabitCompletionEntity::class
+        HabitCompletionEntity::class,
+        QuestEntity::class
     ],
     version = 1,
     exportSchema = false
@@ -30,6 +33,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun habitDao(): HabitDao
     abstract fun lifestyleDao(): LifestyleDao
     abstract fun habitCompletionDao(): HabitCompletionDao
+
+    abstract fun questDao(): QuestDao
 
     companion object {
         @Volatile
@@ -42,7 +47,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "pixelhabit_db"
                 )
-                    .fallbackToDestructiveMigration(false) // for dev
+                    .fallbackToDestructiveMigration(false)
                     .build()
                 INSTANCE = instance
                 instance

@@ -54,26 +54,53 @@ import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateHabitPanel(
+fun HabitFormPanel(
     onDismiss: () -> Unit,
     lifestyles: List<LifestyleData>,
-    onHabitCreated: (HabitData) -> Unit
+    onSave: (HabitData) -> Unit,
+    editingHabit: HabitData? = null
 ) {
-    val defaultCategory = lifestyles.firstOrNull() ?: LifestyleData(
-        id = "", name = "Other", description = "", icon = Icons.Default.Favorite,
-        iconColor = Color(0xFF4CAF50), category = "", createdDate = "", isActive = true
-    )
+    val isEditing = editingHabit != null
+    val defaultCategory = lifestyles.firstOrNull { it.id == editingHabit?.lifestyleId }
+        ?: lifestyles.firstOrNull()
+        ?: LifestyleData(
+            id = "", name = "Other", description = "", icon = Icons.Default.Favorite,
+            iconColor = Color(0xFF4CAF50), category = "", createdDate = "", isActive = true
+        )
 
-    var habitName by remember { mutableStateOf("") }
-    var habitDescription by remember { mutableStateOf("") }
-    var selectedIcon by remember { mutableStateOf(Icons.Default.Favorite) }
-    var selectedColor by remember { mutableStateOf(Color(0xFF4CAF50)) }
-    var selectedCategory by remember { mutableStateOf(defaultCategory) }
 
-    var selectedFrequency by remember { mutableStateOf("every_day") }
-    var selectedCustomDays by remember { mutableStateOf<List<String>>(emptyList()) }
-    var selectedTimeOfDay by remember { mutableStateOf("morning") }
-    var selectedSpecificTime by remember { mutableStateOf<String?>(null) }
+    var habitName by remember(editingHabit) { mutableStateOf(editingHabit?.name ?: "") }
+    var habitDescription by remember(editingHabit) { mutableStateOf(editingHabit?.description ?: "") }
+    var selectedIcon by remember(editingHabit) { mutableStateOf(editingHabit?.icon ?: Icons.Default.Favorite) }
+    var selectedColor by remember(editingHabit) { mutableStateOf(editingHabit?.habitColor ?: Color(0xFF4CAF50)) }
+    var selectedCategory by remember(editingHabit, defaultCategory) {
+        mutableStateOf(
+            lifestyles.firstOrNull { it.name == editingHabit?.lifestyleName } ?: defaultCategory
+        )
+    }
+
+    val initialFrequency = when {
+        editingHabit?.customDays != null && editingHabit.customDays.contains(",") -> {
+            "custom"
+        }
+        editingHabit?.frequency == "Every day" -> "every_day"
+        editingHabit?.frequency == "Weekdays" -> "weekdays"
+        editingHabit?.frequency == "Weekends" -> "weekends"
+        editingHabit?.frequency == "Every other day" -> "every_other_day"
+        editingHabit?.frequency?.contains(",") == true -> "custom"
+        else -> "every_day"
+    }
+
+    var selectedFrequency by remember(editingHabit) { mutableStateOf(initialFrequency) }
+    var selectedCustomDays by remember(editingHabit) {
+        mutableStateOf(
+            editingHabit?.customDays?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+        )
+    }
+
+    val initialTimeOfDay = editingHabit?.timeOfDay?.lowercase() ?: "morning"
+    var selectedTimeOfDay by remember(editingHabit) { mutableStateOf(initialTimeOfDay) }
+    var selectedSpecificTime by remember(editingHabit) { mutableStateOf(editingHabit?.specificTime) }
 
     var showIconPicker by remember { mutableStateOf(false) }
     var showColorPicker by remember { mutableStateOf(false) }
@@ -82,12 +109,10 @@ fun CreateHabitPanel(
     val coroutineScope = rememberCoroutineScope()
     val currentStage = pagerState.currentPage
 
-
     var nameError by remember { mutableStateOf<String?>(null) }
     var frequencyError by remember { mutableStateOf<String?>(null) }
     var isNameErrorShowing by remember { mutableStateOf(false) }
     var isFrequencyErrorShowing by remember { mutableStateOf(false) }
-
 
     BackHandler(onBack = onDismiss)
 
@@ -106,7 +131,7 @@ fun CreateHabitPanel(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "New Habit",
+                    text = if (isEditing) "Edit Habit" else "New Habit",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -138,7 +163,6 @@ fun CreateHabitPanel(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
-
 
             PixelSliderProgress(
                 currentStep = currentStage,
@@ -173,13 +197,11 @@ fun CreateHabitPanel(
                         onDescriptionChange = { habitDescription = it }
                     )
 
-
                     2 -> StepCategory(
                         lifestyles = lifestyles,
                         selectedCategoryName = selectedCategory.name,
                         onCategorySelected = {
                             selectedCategory = it
-                            selectedColor = it.iconColor
                         }
                     )
 
@@ -208,10 +230,13 @@ fun CreateHabitPanel(
                         selectedIcon = selectedIcon,
                         selectedColor = selectedColor,
                         selectedCategory = selectedCategory.name,
+                        selectedCategoryColor = selectedCategory.iconColor,
+                        selectedCategoryIcon = selectedCategory.icon,
                         selectedFrequency = selectedFrequency,
                         selectedTimeOfDay = selectedTimeOfDay,
                         selectedCustomDays = selectedCustomDays,
                         selectedSpecificTime = selectedSpecificTime,
+                        isEditing = isEditing,
                         onCreateHabit = {
                             val weeklyGoal = when (selectedFrequency) {
                                 "every_day" -> 7
@@ -231,9 +256,8 @@ fun CreateHabitPanel(
                                 else -> listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
                             }.joinToString(",")
 
-
                             val habit = HabitData(
-                                id = UUID.randomUUID().toString(),
+                                id = editingHabit?.id ?: UUID.randomUUID().toString(),
                                 description = habitDescription,
                                 name = habitName.ifBlank { "New Habit" },
                                 icon = selectedIcon,
@@ -242,7 +266,15 @@ fun CreateHabitPanel(
                                     "weekdays" -> "Weekdays"
                                     "weekends" -> "Weekends"
                                     "every_other_day" -> "Every other day"
-                                    else -> "Custom"
+                                    "custom" -> {
+                                        val dayShortcuts = mapOf(
+                                            "Monday" to "Mn", "Tuesday" to "Tu", "Wednesday" to "Wd",
+                                            "Thursday" to "Th", "Friday" to "Fr", "Saturday" to "St", "Sunday" to "Sn"
+                                        )
+                                        selectedCustomDays.take(3).joinToString(",") { dayShortcuts[it] ?: it.take(2) } +
+                                                if (selectedCustomDays.size > 3) ", +${selectedCustomDays.size - 3}d" else ""
+                                    }
+                                    else -> "Every day"
                                 },
                                 timeOfDay = selectedTimeOfDay.replaceFirstChar { it.uppercase() },
                                 timeOfDayIcon = when (selectedTimeOfDay) {
@@ -254,15 +286,17 @@ fun CreateHabitPanel(
                                 specificTime = selectedSpecificTime,
                                 customDays = customDaysString,
                                 lifestyleName = selectedCategory.name,
-                                lifestyleColor = selectedColor,
+                                lifestyleId = selectedCategory.id,
+                                lifestyleColor = selectedCategory.iconColor,
+                                habitColor = selectedColor,
                                 lifestyleIcon = selectedCategory.icon,
-                                weeklyProgress = 0f,
-                                weeklyDone = 0,
+                                weeklyProgress = editingHabit?.weeklyProgress ?: 0f,
+                                weeklyDone = editingHabit?.weeklyDone ?: 0,
                                 weeklyGoal = weeklyGoal,
-                                currentStreak = 0,
-                                bestStreak = 0
+                                currentStreak = editingHabit?.currentStreak ?: 0,
+                                bestStreak = editingHabit?.bestStreak ?: 0
                             )
-                            onHabitCreated(habit)
+                            onSave(habit)
                             onDismiss()
                         }
                     )
@@ -351,4 +385,18 @@ fun CreateHabitPanel(
             )
         }
     }
+}
+
+@Composable
+fun CreateHabitPanel(
+    onDismiss: () -> Unit,
+    lifestyles: List<LifestyleData>,
+    onHabitCreated: (HabitData) -> Unit
+) {
+    HabitFormPanel(
+        onDismiss = onDismiss,
+        lifestyles = lifestyles,
+        onSave = onHabitCreated,
+        editingHabit = null
+    )
 }

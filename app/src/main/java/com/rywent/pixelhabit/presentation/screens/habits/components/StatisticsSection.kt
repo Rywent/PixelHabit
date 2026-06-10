@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.rounded.List
 import androidx.compose.material.icons.rounded.PieChart
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.runtime.Composable
@@ -75,7 +75,7 @@ fun StatisticsSection(
 
             MiniStatisticCard(
                 modifier = Modifier.weight(1f),
-                icon = Icons.Rounded.List,
+                icon = Icons.AutoMirrored.Rounded.List,
                 title = "Active",
                 value = "${animatedTotal.value.toInt()}",
                 period = "habits"

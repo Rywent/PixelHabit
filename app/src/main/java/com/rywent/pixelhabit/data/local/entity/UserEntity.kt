@@ -12,6 +12,10 @@ data class UserEntity (
     val currentStreak: Int = 0,
     val bestStreak: Int = 0,
 
+    val habitRemindersEnabled: Boolean = true,
+    val streakNotificationsEnabled: Boolean = true,
+    val motivationEnabled: Boolean = true,
+
     val createdAt: Long = System.currentTimeMillis(),
     val lastActiveAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()

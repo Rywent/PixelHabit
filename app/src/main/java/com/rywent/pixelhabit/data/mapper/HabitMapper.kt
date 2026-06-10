@@ -19,13 +19,16 @@ fun HabitEntity.toHabitData(): HabitData {
         timeOfDayIcon = timeOfDayIconPath.toIcon(),
         customDays = customDays,
         lifestyleName = lifestyleName,
-        lifestyleColor = Color(colorArgb.toULong()),
+        habitColor = Color(colorArgb.toULong()),
+        lifestyleColor = Color(lifestyleColorArgb.toULong()),
         lifestyleIcon = lifestyleIconPath?.toIcon(),
         weeklyProgress = weeklyProgress,
         weeklyDone = weeklyDone,
         weeklyGoal = weeklyGoal,
         currentStreak = currentStreak,
         bestStreak = bestStreak,
+        isCompletedToday = false,
+        lifestyleId = lifestyleId
     )
 }
 
@@ -37,7 +40,8 @@ fun HabitWithCompletion.toTodayHabitData(): TodayHabitData {
         description = habit.description,
         streak = habit.currentStreak,
         icon = habit.iconPath.toIcon(),
-        isCompleted = this.isCompleted
+        isCompleted = this.isCompleted,
+        lifestyleId = habit.lifestyleId
     )
 }
 
@@ -50,7 +54,7 @@ fun HabitData.toEntity(userId: String): HabitEntity {
         iconPath = icon.toPath(),
         timeOfDayIconPath = timeOfDayIcon.toPath(),
         lifestyleIconPath = lifestyleIcon?.toPath(),
-        colorArgb = lifestyleColor.value.toLong(),
+        colorArgb = habitColor.value.toLong(),
         lifestyleColorArgb = lifestyleColor.value.toLong(),
         frequency = frequency,
         timeOfDay = timeOfDay,
@@ -62,6 +66,7 @@ fun HabitData.toEntity(userId: String): HabitEntity {
         weeklyGoal = weeklyGoal,
         currentStreak = currentStreak,
         bestStreak = bestStreak,
-        userId = userId
+        userId = userId,
+        lifestyleId = lifestyleId
     )
 }

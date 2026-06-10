@@ -12,6 +12,12 @@ import androidx.room.PrimaryKey
             parentColumns = ["id"],
             childColumns = ["userId"],
             onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = LifestyleEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["lifestyleId"],
+            onDelete = ForeignKey.SET_NULL
         )
     ])
 data class HabitEntity(
@@ -44,5 +50,6 @@ data class HabitEntity(
     val updatedAt: Long = System.currentTimeMillis(),
 
     // foreign keys
-    val userId: String
+    val userId: String,
+    val lifestyleId: String? = null
 )

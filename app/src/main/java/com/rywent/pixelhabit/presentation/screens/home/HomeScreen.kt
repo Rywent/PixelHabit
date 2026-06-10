@@ -36,7 +36,8 @@ import androidx.navigation.NavController
 import com.rywent.pixelhabit.presentation.components.habit.HabitTodayCard
 import com.rywent.pixelhabit.presentation.components.habit.TodayHabitData
 import com.rywent.pixelhabit.presentation.components.panels.CreateHabitPanel
-import com.rywent.pixelhabit.presentation.components.panels.StreakPanelTwo
+import com.rywent.pixelhabit.presentation.components.panels.StreakPanel
+import com.rywent.pixelhabit.presentation.navigation.Screen
 import com.rywent.pixelhabit.presentation.screens.about.AboutBottomSheet
 import com.rywent.pixelhabit.presentation.screens.home.components.AddHabitButton
 import com.rywent.pixelhabit.presentation.screens.home.components.HeaderButtons
@@ -134,9 +135,6 @@ fun HomeScreen(
                         isCompleted = habit.isCompleted,
                         onCheckedChange = { completed ->
                             viewModel.onHabitCheckboxClicked(habit.id, completed)
-                        },
-                        onTodayHabitClick = {
-                            viewModel.onHabitClick(habit.id)
                         }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -150,7 +148,7 @@ fun HomeScreen(
 
 
         HeaderButtons(
-            onClickSettings = {},
+            onClickSettings = {navController.navigate(Screen.Settings.route)},
             onClickAppVersion = {viewModel.onAboutClicked()},
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -162,7 +160,7 @@ fun HomeScreen(
         }
 
         AnimatedVisibility(
-            visible = uiState.showStreakPanel && uiState.streakPanelVisible,
+            visible = uiState.showStreakPanel,
             enter = slideInVertically(
                 initialOffsetY = { -it },
                 animationSpec = tween(
@@ -191,7 +189,7 @@ fun HomeScreen(
                 ),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                StreakPanelTwo(streak = uiState.streakPanelValue, isResetMode = uiState.isStreakReset )
+                StreakPanel(streak = uiState.streakPanelValue, isResetMode = uiState.isStreakReset )
             }
         }
 

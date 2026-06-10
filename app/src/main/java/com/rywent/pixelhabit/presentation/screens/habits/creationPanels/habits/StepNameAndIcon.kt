@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +28,9 @@ fun StepNameAndIcon(
     onMoreIconsClick: () -> Unit,
     onMoreColorsClick: () -> Unit
 ) {
+
+    val maxNameChars = 50
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -54,7 +57,11 @@ fun StepNameAndIcon(
 
         OutlinedTextField(
             value = name,
-            onValueChange = onNameChange,
+            onValueChange = { newValue ->
+                if (newValue.length <= maxNameChars) {
+                    onNameChange(newValue)
+                }
+            },
             placeholder = { Text("Habit name") },
             textStyle = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium),
             shape = RoundedCornerShape(24.dp),
@@ -63,7 +70,22 @@ fun StepNameAndIcon(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline
-            )
+            ),
+            supportingText = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text(
+                        text = "${name.length}/$maxNameChars",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (name.length >= maxNameChars)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -82,7 +104,7 @@ fun StepNameAndIcon(
 
             TextButton(onClick = onMoreIconsClick) {
                 Text("More icons")
-                Icon(Icons.Default.ArrowForwardIos, contentDescription = null, modifier = Modifier.size(16.dp))
+                Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, modifier = Modifier.size(16.dp))
             }
         }
 
@@ -106,7 +128,7 @@ fun StepNameAndIcon(
 
             TextButton(onClick = onMoreColorsClick) {
                 Text("More colors")
-                Icon(Icons.Default.ArrowForwardIos, contentDescription = null, modifier = Modifier.size(16.dp))
+                Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, modifier = Modifier.size(16.dp))
             }
         }
 

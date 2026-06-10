@@ -47,20 +47,26 @@ import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.lifestyl
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.lifestyles.StepNavigationBar
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.lifestyles.StepPreview
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateLifestylePanel(
+fun LifestyleFormPanel(
     onDismiss: () -> Unit,
-    onLifestyleCreated: (LifestyleData) -> Unit
-){
-    var lifestyleName by remember { mutableStateOf("") }
-    var selectedIcon by remember { mutableStateOf(Icons.Default.Favorite) }
-    var selectedColor by remember { mutableStateOf(Color(0xFF4CAF50)) }
+    onSave: (LifestyleData) -> Unit,
+    editingLifestyle: LifestyleData? = null,
+    existingLifestyles: List<LifestyleData> = emptyList()
+) {
+    val isEditing = editingLifestyle != null
 
-    var lifestyleCategory by remember {mutableStateOf("")}
-    var lifestyleDescription by remember {mutableStateOf("")}
+    var lifestyleName by remember(editingLifestyle) { mutableStateOf(editingLifestyle?.name ?: "") }
+    var selectedIcon by remember(editingLifestyle) { mutableStateOf(editingLifestyle?.icon ?: Icons.Default.Favorite) }
+    var selectedColor by remember(editingLifestyle) { mutableStateOf(editingLifestyle?.iconColor ?: Color(0xFF4CAF50)) }
+    var lifestyleCategory by remember(editingLifestyle) { mutableStateOf(editingLifestyle?.category ?: "") }
+    var lifestyleDescription by remember(editingLifestyle) { mutableStateOf(editingLifestyle?.description ?: "") }
 
     var showIconPicker by remember { mutableStateOf(false) }
     var showColorPicker by remember { mutableStateOf(false) }
@@ -72,6 +78,15 @@ fun CreateLifestylePanel(
 
     var nameError by remember { mutableStateOf<String?>(null) }
     var isNameErrorShowing by remember { mutableStateOf(false) }
+
+    fun isNameUnique(name: String): Boolean {
+        if (name.isBlank()) return false
+        return if (isEditing) {
+            existingLifestyles.none { it.name.equals(name, ignoreCase = true) && it.id != editingLifestyle.id }
+        } else {
+            existingLifestyles.none { it.name.equals(name, ignoreCase = true) }
+        }
+    }
 
     BackHandler(onBack = onDismiss)
 
@@ -92,7 +107,7 @@ fun CreateLifestylePanel(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "New Lifestyle",
+                    text = if (isEditing) "Edit Lifestyle" else "New Lifestyle",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -129,9 +144,12 @@ fun CreateLifestylePanel(
                     0 -> {
                         StepNameAndIcon(
                             name = lifestyleName,
-                            onNameChange = {
-                                lifestyleName = it
-                                if (it.isNotBlank()) nameError = null
+                            onNameChange = { newName ->
+                                lifestyleName = newName
+                                if (isNameUnique(newName) && newName.isNotBlank()) {
+                                    nameError = null
+                                    isNameErrorShowing = false
+                                }
                             },
                             selectedIcon = selectedIcon,
                             selectedColor = selectedColor,
@@ -159,19 +177,28 @@ fun CreateLifestylePanel(
                             selectedColor = selectedColor,
                             category = lifestyleCategory,
                             description = lifestyleDescription,
-                            onCreateLifestyle = {
+                            onSave = {
+                                if (!isNameUnique(lifestyleName)) {
+                                    nameError = "Lifestyle with name '$lifestyleName' already exists"
+                                    isNameErrorShowing = true
+                                    return@StepPreview
+                                }
+
                                 val lifestyle = LifestyleData(
-                                    id = UUID.randomUUID().toString(),
-                                    name = lifestyleName,
+                                    id = editingLifestyle?.id ?: UUID.randomUUID().toString(),
+                                    name = lifestyleName.ifBlank { "Lifestyle name" },
                                     description = lifestyleDescription,
                                     icon = selectedIcon,
                                     iconColor = selectedColor,
                                     category = lifestyleCategory,
-                                    isActive = true
+                                    createdDate = editingLifestyle?.createdDate
+                                        ?: SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date()),
+                                    isActive = editingLifestyle?.isActive ?: true
                                 )
-                                onLifestyleCreated(lifestyle)
+                                onSave(lifestyle)
                                 onDismiss()
-                            }
+                            },
+                            isEditing = isEditing
                         )
                     }
                 }
@@ -185,15 +212,25 @@ fun CreateLifestylePanel(
 
                     when (currentStage) {
                         0 -> {
-                            if (lifestyleName.isBlank()) {
-                                if (!isNameErrorShowing) {
-                                    nameError = "Lifestyle name cannot be empty"
-                                    isNameErrorShowing = true
+                            when {
+                                lifestyleName.isBlank() -> {
+                                    if (!isNameErrorShowing) {
+                                        nameError = "Lifestyle name cannot be empty"
+                                        isNameErrorShowing = true
+                                    }
+                                    canProceed = false
                                 }
-                                canProceed = false
-                            } else {
-                                nameError = null
-                                isNameErrorShowing = false
+                                !isNameUnique(lifestyleName) -> {
+                                    if (!isNameErrorShowing) {
+                                        nameError = "Lifestyle with name '$lifestyleName' already exists"
+                                        isNameErrorShowing = true
+                                    }
+                                    canProceed = false
+                                }
+                                else -> {
+                                    nameError = null
+                                    isNameErrorShowing = false
+                                }
                             }
                         }
                     }
@@ -248,4 +285,18 @@ fun CreateLifestylePanel(
             )
         }
     }
+}
+
+@Composable
+fun CreateLifestylePanel(
+    onDismiss: () -> Unit,
+    onLifestyleCreated: (LifestyleData) -> Unit,
+    existingLifestyles: List<LifestyleData> = emptyList()
+) {
+    LifestyleFormPanel(
+        onDismiss = onDismiss,
+        onSave = onLifestyleCreated,
+        editingLifestyle = null,
+        existingLifestyles = existingLifestyles
+    )
 }

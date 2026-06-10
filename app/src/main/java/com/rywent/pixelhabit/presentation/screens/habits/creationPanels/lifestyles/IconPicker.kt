@@ -40,7 +40,6 @@ fun IconPicker(
     var expanded by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Круглая раскрывающаяся кнопка
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(if (expanded) 24.dp else 50.dp),
@@ -98,7 +97,6 @@ fun IconPicker(
                     )
                 }
 
-                // Раскрывающийся контент
                 AnimatedVisibility(
                     visible = expanded,
                     enter = expandVertically(),
@@ -133,7 +131,6 @@ fun IconPicker(
                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                         )
 
-                        // Показываем только первые 2 группы
                         iconGroups.forEach { group ->
                             Text(
                                 text = group.title,
@@ -181,7 +178,6 @@ fun IconPicker(
                             Spacer(modifier = Modifier.height(16.dp))
                         }
 
-                        // Кнопка "More icons" вместо третьей группы
                         FilledTonalButton(
                             onClick = {
                                 expanded = false

@@ -30,7 +30,6 @@ fun LifestyleSubScreen(
                         .padding(vertical = 6.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // First card in row
                     LifestyleCard(
                         modifier = Modifier
                             .weight(1f)
@@ -41,7 +40,6 @@ fun LifestyleSubScreen(
                         }
                     )
 
-                    // Second card (if exists) or spacer for symmetry
                     if (row.size > 1) {
                         LifestyleCard(
                             modifier = Modifier

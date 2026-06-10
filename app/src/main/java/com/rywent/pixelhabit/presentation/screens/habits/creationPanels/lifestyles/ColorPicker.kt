@@ -46,7 +46,6 @@ fun ColorPicker(
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Круглая раскрывающаяся кнопка
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(if (expanded) 24.dp else 50.dp),
@@ -111,7 +110,6 @@ fun ColorPicker(
                     )
                 }
 
-                // Раскрывающийся контент
                 AnimatedVisibility(
                     visible = expanded,
                     enter = expandVertically(),
@@ -181,7 +179,7 @@ fun ColorPicker(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Кнопка "More colors"
+
                         FilledTonalButton(
                             onClick = onMoreColorsClick,
                             modifier = Modifier.fillMaxWidth(),

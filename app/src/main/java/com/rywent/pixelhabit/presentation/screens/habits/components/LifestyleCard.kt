@@ -67,7 +67,7 @@ fun LifestyleCard(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Top row: icon + category
+                // icon and category
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -135,7 +135,7 @@ fun LifestyleCard(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Date всегда внизу
+                // Date
                 if (lifestyle.createdDate.isNotEmpty()) {
                     Text(
                         text = lifestyle.createdDate,
@@ -148,7 +148,7 @@ fun LifestyleCard(
     }
 }
 
-// Data class for Lifestyle
+
 data class LifestyleData(
     val id: String,
     val name: String,
@@ -157,5 +157,6 @@ data class LifestyleData(
     val iconColor: Color,
     val category: String = "",
     val createdDate: String = "",
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
+    val habitCount: Int = 0
 )

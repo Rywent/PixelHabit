@@ -19,7 +19,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun NoHabits(){
+fun NoHabits(
+    message: String = "No habits"
+){
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -36,7 +38,7 @@ fun NoHabits(){
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "No habits",
+            text = message,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -44,11 +46,14 @@ fun NoHabits(){
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = "Start changing your life. To add a new habit, click the button below.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center
-        )
+        if (message == "No habits") {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Start changing your life. To add a new habit, click the button below.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }

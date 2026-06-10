@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +25,8 @@ fun StepNameAndIcon(
     onMoreIconsClick: () -> Unit,
     onMoreColorsClick: () -> Unit
 ) {
+    val maxNameChars = 50
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -56,7 +57,11 @@ fun StepNameAndIcon(
 
         OutlinedTextField(
             value = name,
-            onValueChange = onNameChange,
+            onValueChange = { newValue ->
+                if (newValue.length <= maxNameChars) {
+                    onNameChange(newValue)
+                }
+            },
             placeholder = {
                 Text(
                     "Lifestyle name",
@@ -75,7 +80,22 @@ fun StepNameAndIcon(
                 focusedBorderColor = selectedColor,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                 cursorColor = selectedColor
-            )
+            ),
+            supportingText = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text(
+                        text = "${name.length}/$maxNameChars",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (name.length >= maxNameChars)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
+            }
         )
 
 

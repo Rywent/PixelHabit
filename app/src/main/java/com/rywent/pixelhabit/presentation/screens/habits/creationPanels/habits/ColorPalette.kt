@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -21,30 +22,38 @@ fun ColorPalette(
     onColorSelected: (Color) -> Unit
 ) {
     val colors = listOf(
-        Color(0xFF4CAF50), Color(0xFF2196F3), Color(0xFFFF9800),
-        Color(0xFFE91E63), Color(0xFF9C27B0), Color(0xFF00BCD4),
-        Color(0xFFFF5722), Color(0xFF607D8B), Color(0xFF8BC34A)
+        Color(0xFF4CAF50),
+        Color(0xFF2196F3),
+        Color(0xFFE91E63),
+        Color(0xFF9C27B0),
+        Color(0xFFFF9800),
+        Color(0xFF00BCD4)
     )
 
     Row(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxWidth()
     ) {
-        colors.forEach { color ->
-            val isSelected = color == selectedColor
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            colors.forEach { color ->
+                val isSelected = color == selectedColor
 
-            Box(
-                modifier = Modifier
-                    .size(if (isSelected) 48.dp else 44.dp)
-                    .clip(CircleShape)
-                    .background(color)
-                    .border(
-                        width = if (isSelected) 4.dp else 2.dp,
-                        color = if (isSelected) Color.White else Color.Transparent,
-                        shape = CircleShape
-                    )
-                    .clickable { onColorSelected(color) }
-            )
+                Box(
+                    modifier = Modifier
+                        .size(if (isSelected) 48.dp else 48.dp)
+                        .clip(CircleShape)
+                        .background(color)
+                        .border(
+                            width = if (isSelected) 4.dp else 2.dp,
+                            color = if (isSelected) Color.White else Color.Transparent,
+                            shape = CircleShape
+                        )
+                        .clickable { onColorSelected(color) }
+                )
+            }
         }
     }
 }

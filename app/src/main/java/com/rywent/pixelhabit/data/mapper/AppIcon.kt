@@ -70,6 +70,32 @@ enum class AppIcon(val key: String, val icon: ImageVector) {
     VIDEO_LIBRARY("VideoLibrary", Icons.Default.VideoLibrary),
     LOCAL_LIBRARY("LocalLibrary", Icons.Default.LocalLibrary),
 
+    // Food & Cooking
+    FREE_BREAKFAST("FreeBreakfast", Icons.Default.FreeBreakfast),
+    LUNCH_DINING("LunchDining", Icons.Default.LunchDining),
+    DINNER_DINING("DinnerDining", Icons.Default.DinnerDining),
+    LOCAL_CAFE("LocalCafe", Icons.Default.LocalCafe),
+    RAMEN_DINING("RamenDining", Icons.Default.RamenDining),
+    TAKEOUT_DINING("TakeoutDining", Icons.Default.TakeoutDining),
+    EGG("Egg", Icons.Default.Egg),
+    COOKIE("Cookie", Icons.Default.Cookie),
+    ICECREAM("Icecream", Icons.Default.Icecream),
+    FASTFOOD("Fastfood", Icons.Default.Fastfood),
+    BAKERY_DINING("BakeryDining", Icons.Default.BakeryDining),
+    BRUNCH_DINING("BrunchDining", Icons.Default.BrunchDining),
+    HEALTH_AND_SAFETY("HealthAndSafety", Icons.Default.HealthAndSafety),
+
+    // Chores & Housekeeping
+    CLEAN_HANDS("CleanHands", Icons.Default.CleanHands),
+    SOAP("Soap", Icons.Default.Soap),
+    HOUSE("House", Icons.Default.House),
+    HOUSE_SIDING("HouseSiding", Icons.Default.HouseSiding),
+    OTHER_HOUSES("OtherHouses", Icons.Default.OtherHouses),
+    BED("Bed", Icons.Default.Bed),
+    DOOR_FRONT("DoorFront", Icons.Default.DoorFront),
+    GARAGE("Garage", Icons.Default.Garage),
+    WINDOW("Window", Icons.Default.Window),
+
     // Lifestyle & Daily
     HOME("Home", Icons.Default.Home),
     SHOPPING_CART("ShoppingCart", Icons.Default.ShoppingCart),

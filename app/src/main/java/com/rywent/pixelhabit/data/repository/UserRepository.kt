@@ -44,6 +44,27 @@ class UserRepository(
         userDao.updateUserName(userId, name)
     }
 
+    suspend fun updateHabitRemindersEnabled(userId: String, enabled: Boolean) {
+        userDao.updateHabitRemindersEnabled(userId, enabled)
+    }
+
+    suspend fun updateStreakNotificationsEnabled(userId: String, enabled: Boolean) {
+        userDao.updateStreakNotificationsEnabled(userId, enabled)
+    }
+
+    suspend fun updateMotivationEnabled(userId: String, enabled: Boolean) {
+        userDao.updateMotivationEnabled(userId, enabled)
+    }
+
+    suspend fun getNotificationSettings(userId: String): Triple<Boolean, Boolean, Boolean> {
+        val user = userDao.getUserById(userId)
+        return Triple(
+            user?.habitRemindersEnabled ?: true,
+            user?.streakNotificationsEnabled ?: true,
+            user?.motivationEnabled ?: true
+        )
+    }
+
     suspend fun updateStreak(userId: String, streak: Int, bestStreak: Int) {
         val currentBest = userDao.getUserById(userId)?.bestStreak ?: 0
         userDao.updateStreak(

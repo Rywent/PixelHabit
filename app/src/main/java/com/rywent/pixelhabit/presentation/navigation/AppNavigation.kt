@@ -21,6 +21,7 @@ import com.rywent.pixelhabit.presentation.screens.habits.HabitsScreen
 import com.rywent.pixelhabit.presentation.screens.journal.JournalScreen
 import androidx.compose.ui.unit.IntOffset
 import com.rywent.pixelhabit.presentation.components.panels.CreateHabitPanel
+import com.rywent.pixelhabit.presentation.screens.settings.SettingsScreen
 
 private const val BOTTOM_NAV_TRANSITION_DURATION = 350
 
@@ -126,31 +127,7 @@ fun AppNavigation(
 
         // Focus
         composable(
-            route = Screen.Focus.route,
-            enterTransition = {
-                mainRootEnterTransition(
-                    fromRoute = initialState.destination.route,
-                    toRoute = targetState.destination.route
-                )
-            },
-            exitTransition = {
-                mainRootExitTransition(
-                    fromRoute = initialState.destination.route,
-                    toRoute = targetState.destination.route
-                )
-            },
-            popEnterTransition = {
-                mainRootEnterTransition(
-                    fromRoute = initialState.destination.route,
-                    toRoute = targetState.destination.route
-                )
-            },
-            popExitTransition = {
-                mainRootExitTransition(
-                    fromRoute = initialState.destination.route,
-                    toRoute = targetState.destination.route
-                )
-            }
+            route = Screen.Focus.route
         ) {
             FocusScreen(navController, paddingValues)
         }
@@ -217,6 +194,35 @@ fun AppNavigation(
             JournalScreen(navController, paddingValues)
         }
 
+        composable(
+            route = Screen.Settings.route,
+            enterTransition = {
+                slideInHorizontally(
+                    animationSpec = tween(400, easing = FastOutSlowInEasing),
+                    initialOffsetX = { it } // Выезжает СПРАВА (полная ширина) -> налево
+                ) + fadeIn(animationSpec = tween(400))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    animationSpec = tween(400, easing = FastOutSlowInEasing),
+                    targetOffsetX = { -it } // Уезжает НАЛЕВО (минус ширина) -> направо? НЕТ, это не то
+                ) + fadeOut(animationSpec = tween(400))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    animationSpec = tween(400, easing = FastOutSlowInEasing),
+                    initialOffsetX = { -it } // При возврате - выезжает СЛЕВА
+                ) + fadeIn(animationSpec = tween(400))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    animationSpec = tween(400, easing = FastOutSlowInEasing),
+                    targetOffsetX = { it } // Уезжает НАПРАВО
+                ) + fadeOut(animationSpec = tween(400))
+            }
+        ) {
+            SettingsScreen(navController, paddingValues)
+        }
 
 
     }

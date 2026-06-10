@@ -10,6 +10,7 @@ import com.rywent.pixelhabit.data.repository.HabitRepository
 import com.rywent.pixelhabit.data.repository.LifestyleRepository
 import com.rywent.pixelhabit.data.repository.UserRepository
 import com.rywent.pixelhabit.data.utils.isHabitScheduledForDate
+import com.rywent.pixelhabit.notifications.habit.HabitNotificationScheduler
 import com.rywent.pixelhabit.presentation.components.habit.HabitData
 import com.rywent.pixelhabit.presentation.screens.home.components.DayStat
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +31,8 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val habitRepository: HabitRepository,
-    private val lifestyleRepository: LifestyleRepository
+    private val lifestyleRepository: LifestyleRepository,
+    private val notificationScheduler: HabitNotificationScheduler
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -39,8 +41,7 @@ class HomeViewModel @Inject constructor(
     private val userId = "default_user"
     private var previousStreak: Int? = null
     private var streakPanelJob: Job? = null
-    private var isFirstLoad = true // Флаг первой загрузки
-    private var isAppInForeground = true // Приложение активно
+    private var isFirstLoad = true
 
     companion object {
         private const val STREAK_PANEL_DISPLAY_DURATION = 4000L
@@ -101,19 +102,18 @@ class HomeViewModel @Inject constructor(
         }
 
         when {
-            // Стрик увеличился - всегда показываем
+
             isIncrease -> {
                 isFirstLoad = false
                 showStreakPanel(newStreak, isResetMode = false)
             }
-            // Стрик сбросился только при первой загрузке приложения
+
             isReset && isFirstLoad -> {
                 isFirstLoad = false
                 showStreakPanel(previousValue!!, isResetMode = true)
             }
-            // Стрик сбросился во время использования - игнорируем
+
             isReset && !isFirstLoad -> {
-                // Ничего не делаем
             }
         }
     }
@@ -165,17 +165,14 @@ class HomeViewModel @Inject constructor(
 
     fun createHabit(habit: HabitData) {
         viewModelScope.launch {
-            habitRepository.insertHabit(habit.toEntity(userId))
+            val habitEntity = habit.toEntity(userId)
+            habitRepository.insertHabit(habitEntity)
+
+            notificationScheduler.scheduleHabitReminder(habitEntity)
         }
     }
 
-    fun onHabitClick(id: String) {
-        val habit = _uiState.value.todayHabits.find { it.id == id }
-    }
 
-    fun onSettingsClicked() {
-
-    }
 
     fun onAboutClicked() {
         _uiState.update { it.copy(showAboutSheet = true) }
@@ -205,7 +202,6 @@ class HomeViewModel @Inject constructor(
                 it.copy(
                     showStreakPanel = true,
                     streakPanelValue = streak,
-                    streakPanelVisible = true,
                     isStreakReset = isResetMode
                 )
             }
@@ -213,7 +209,6 @@ class HomeViewModel @Inject constructor(
             val duration = if (isResetMode) STREAK_RESET_PANEL_DURATION else STREAK_PANEL_DISPLAY_DURATION
             delay(duration)
 
-            _uiState.update { it.copy(streakPanelVisible = false) }
             delay(STREAK_PANEL_EXIT_ANIMATION_DURATION)
 
             _uiState.update {

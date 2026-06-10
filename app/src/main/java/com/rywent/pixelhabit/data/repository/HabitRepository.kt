@@ -12,7 +12,6 @@ import com.rywent.pixelhabit.data.utils.calculateWeeklyDone
 import com.rywent.pixelhabit.data.utils.calculateWeeklyProgress
 import com.rywent.pixelhabit.data.utils.findPreviousScheduledDate
 import com.rywent.pixelhabit.data.utils.isHabitScheduledForDate
-import com.rywent.pixelhabit.data.utils.shouldResetStreak
 import com.rywent.pixelhabit.data.utils.shouldResetWeeklyProgress
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
@@ -31,6 +30,13 @@ class HabitRepository(
         return habitDao.getAllHabits(userId)
     }
 
+    suspend fun getHabitsByLifestyleIdOnce(lifestyleId: String, userId: String): List<HabitEntity> {
+        return habitDao.getHabitsByLifestyleIdOnce(lifestyleId, userId)
+    }
+
+    suspend fun getCompletionsBetween(startDate: String, endDate: String): List<HabitCompletionEntity> {
+        return completionDao.getCompletionsBetween(startDate, endDate)
+    }
     fun getCompletionsByDate(date: String): Flow<List<HabitCompletionEntity>> {
         return completionDao.getCompletionsByDate(date)
     }
@@ -144,6 +150,10 @@ class HabitRepository(
 
     suspend fun getHabitByIdByUserId(habitId: String, userId: String): HabitEntity? {
         return habitDao.getHabitByIdAndByUserId(userId, habitId)
+    }
+
+    fun getCompletionsForHabit(habitId: String): Flow<List<HabitCompletionEntity>> {
+        return completionDao.getCompletionsForHabit(habitId)
     }
 
     suspend fun insertHabit(habit: HabitEntity) {

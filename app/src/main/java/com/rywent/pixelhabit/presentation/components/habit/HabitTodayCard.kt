@@ -65,8 +65,7 @@ fun HabitTodayCard(
     streak: Int?,
     icon: ImageVector,
     isCompleted: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    onTodayHabitClick: () -> Unit
+    onCheckedChange: (Boolean) -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
     val shadowColor = adaptiveShadowColor()
@@ -270,8 +269,7 @@ fun HabitTodayCard(
                             } else {
                                 scheme.surfaceContainer
                             }
-                        )
-                        .clickable { onTodayHabitClick() },
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -296,4 +294,5 @@ data class TodayHabitData(
     val streak: Int?,
     val icon: ImageVector,
     val isCompleted: Boolean,
+    val lifestyleId: String? = null
 )

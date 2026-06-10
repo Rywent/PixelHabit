@@ -61,6 +61,23 @@ fun FullIconPicker(
                 Icons.Default.Brush, Icons.Default.Audiotrack, Icons.Default.VideoLibrary,
                 Icons.Default.LocalLibrary
             )),
+            IconCategory("Food & Cooking", listOf(
+                Icons.Default.EmojiFoodBeverage, Icons.Default.Restaurant, Icons.Default.Cake,
+                Icons.Default.NoFood, Icons.Default.Coffee, Icons.Default.FreeBreakfast,
+                Icons.Default.LunchDining, Icons.Default.DinnerDining, Icons.Default.LocalCafe,
+                Icons.Default.Kitchen, Icons.Default.RamenDining, Icons.Default.TakeoutDining,
+                Icons.Default.Egg, Icons.Default.Cookie, Icons.Default.Icecream,
+                Icons.Default.Fastfood, Icons.Default.BakeryDining, Icons.Default.BrunchDining,
+                Icons.Default.HealthAndSafety
+            )),
+            IconCategory("Chores & Housekeeping", listOf(
+                Icons.Default.Home, Icons.Default.LocalLaundryService, Icons.Default.Kitchen,
+                Icons.Default.Shower, Icons.Default.Bathtub, Icons.Default.Wc,
+                Icons.Default.CleanHands, Icons.Default.Soap,
+                Icons.Default.WaterDrop, Icons.Default.Water, Icons.Default.House,
+                Icons.Default.HouseSiding, Icons.Default.OtherHouses, Icons.Default.Bed,
+                Icons.Default.DoorFront, Icons.Default.Garage, Icons.Default.Window,
+            )),
             IconCategory("Lifestyle & Daily", listOf(
                 Icons.Default.Home, Icons.Default.ShoppingCart, Icons.Default.DirectionsCar,
                 Icons.Default.Train, Icons.Default.Flight, Icons.Default.Coffee,
@@ -150,7 +167,7 @@ fun FullIconPicker(
                                             imageVector = icon,
                                             contentDescription = null,
                                             tint = if (isSelected) selectedColor
-                                            else selectedColor.copy(alpha = 0.7f), // ← Все иконки в выбранном цвете
+                                            else selectedColor.copy(alpha = 0.7f),
                                             modifier = Modifier.size(32.dp)
                                         )
                                     }
