@@ -41,10 +41,10 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            Log.d(TAG, "✅ POST_NOTIFICATIONS permission granted")
+            Log.d(TAG, "POST_NOTIFICATIONS permission granted")
             requestExactAlarmPermission()
         } else {
-            Log.w(TAG, "❌ POST_NOTIFICATIONS permission denied")
+            Log.w(TAG, "POST_NOTIFICATIONS permission denied")
         }
     }
 

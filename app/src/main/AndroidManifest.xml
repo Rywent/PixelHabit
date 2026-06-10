@@ -31,6 +31,10 @@
             android:name=".notifications.habit.HabitNotificationReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".notifications.motivation.MotivationNotificationReceiver"
+            android:exported="false" />
+
     </application>
 
 </manifest>

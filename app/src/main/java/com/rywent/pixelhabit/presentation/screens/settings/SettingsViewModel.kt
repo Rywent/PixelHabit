@@ -109,6 +109,14 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(importState = ImportState.Idle) }
     }
 
+    fun onAboutClicked() {
+        _uiState.update { it.copy(showAboutSheet = true) }
+    }
+
+    fun onDismissAbout() {
+        _uiState.update { it.copy(showAboutSheet = false) }
+    }
+
     private fun parseBackupJson(jsonObject: JSONObject, rawJson: String): BackupSummary {
         val metadata = BackupMetadata(
             version = jsonObject.optInt("version", 1),
@@ -267,12 +275,4 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
-
-    data class SettingsUiState(
-        val habitRemindersEnabled: Boolean = true,
-        val streakNotificationsEnabled: Boolean = true,
-        val motivationEnabled: Boolean = true,
-        val exportState: ExportState = ExportState.Idle,
-        val importState: ImportState = ImportState.Idle
-    )
 }

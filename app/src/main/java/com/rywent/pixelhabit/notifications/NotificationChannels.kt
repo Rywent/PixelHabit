@@ -23,6 +23,7 @@ object NotificationChannels {
             setShowBadge(true)
         }
 
+
         val streakChannel = NotificationChannel(
             CHANNEL_STREAK,
             "Streak Updates",
@@ -32,12 +33,15 @@ object NotificationChannels {
             setShowBadge(true)
         }
 
+
         val motivationChannel = NotificationChannel(
             CHANNEL_MOTIVATION,
             "Motivation",
-            NotificationManager.IMPORTANCE_LOW
+            NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Daily motivation and tips"
+            description = "Daily motivation to keep you going"
+            enableVibration(true)
+            vibrationPattern = longArrayOf(0, 100)
             setShowBadge(false)
         }
 

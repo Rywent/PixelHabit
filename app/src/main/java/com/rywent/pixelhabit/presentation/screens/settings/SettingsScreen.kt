@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.rywent.pixelhabit.presentation.screens.about.AboutBottomSheet
 import com.rywent.pixelhabit.presentation.screens.settings.components.BackupPanel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,12 +75,6 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
-                SettingsBackupOption(
-                    onClick = { showBackupPanel = true }
-                )
-            }
-
-            item {
                 Spacer(modifier = Modifier.height(16.dp))
                 SettingsCategory(title = "Notifications")
             }
@@ -120,14 +115,23 @@ fun SettingsScreen(
             }
 
             item {
+                SettingsBackupOption(
+                    onClick = { showBackupPanel = true }
+                )
+            }
+            item {
                 SettingsOption(
                     icon = Icons.Default.Info,
                     title = "About",
                     subtitle = "Version 1.0.0",
-                    onClick = { }
+                    onClick = { viewModel.onAboutClicked() }
                 )
             }
         }
+    }
+
+    if(uiState.showAboutSheet){
+        AboutBottomSheet(true, onDismiss = {viewModel.onDismissAbout()})
     }
 
     BackupPanel(
@@ -256,4 +260,5 @@ fun SettingsSwitchOption(
             )
         }
     }
+
 }

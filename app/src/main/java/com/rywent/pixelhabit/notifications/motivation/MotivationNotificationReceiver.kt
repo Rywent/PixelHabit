@@ -1,4 +1,4 @@
-package com.rywent.pixelhabit.notifications.habit
+package com.rywent.pixelhabit.notifications.motivation
 
 import android.Manifest
 import android.content.BroadcastReceiver
@@ -12,26 +12,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class HabitNotificationReceiver : BroadcastReceiver() {
-
-    companion object {
-        private const val TAG = "HabitReceiver"
-    }
+class MotivationNotificationReceiver : BroadcastReceiver() {
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null || intent == null) return
 
-
-        val habitId = intent.getStringExtra("habit_id") ?: return
-        val habitName = intent.getStringExtra("habit_name") ?: "Habit"
+        val timeOfDay = intent.getStringExtra("time_of_day") ?: return
         val notificationId = intent.getIntExtra("notification_id", 0)
-        val scheduledTime = intent.getStringExtra("scheduled_time")
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
             != PackageManager.PERMISSION_GRANTED) {
-            Log.w(TAG, " No permission POST_NOTIFICATIONS")
+            Log.w("MotivationReceiver", "No POST_NOTIFICATIONS permission")
             return
         }
 
@@ -39,19 +32,15 @@ class HabitNotificationReceiver : BroadcastReceiver() {
             try {
                 val app = context.applicationContext as PixelHabitApplication
 
-                app.habitNotificationManager.showHabitReminder(
-                    habitName = habitName,
-                    habitId = habitId,
-                    scheduledTime = scheduledTime,
-                    notificationId = notificationId
+                val (_, _, motivationEnabled) = app.userRepository.getNotificationSettings("default_user")
+
+                app.motivationNotificationManager.showMotivationNotification(
+                    timeOfDay = timeOfDay,
+                    notificationId = notificationId,
+                    enabled = motivationEnabled
                 )
-
-
-                val habit = app.habitRepository.getHabitByIdByUserId(habitId, "default_user")
-                habit?.let { app.habitNotificationScheduler.scheduleHabitReminder(it) }
-
             } catch (e: Exception) {
-                Log.w(TAG, "Error: $e")
+                Log.e("MotivationReceiver", "Error: ${e.message}")
             }
         }
     }

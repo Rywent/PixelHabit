@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.work.WorkManager
 import com.rywent.pixelhabit.notifications.habit.HabitNotificationManager
 import com.rywent.pixelhabit.notifications.habit.HabitNotificationScheduler
+import com.rywent.pixelhabit.notifications.motivation.MotivationNotificationManager
+import com.rywent.pixelhabit.notifications.motivation.MotivationNotificationScheduler
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,4 +34,16 @@ object NotificationModule {
     fun provideWorkManager(
         @ApplicationContext context: Context
     ): WorkManager = WorkManager.getInstance(context)
+
+    @Provides
+    @Singleton
+    fun provideMotivationNotificationManager(
+        @ApplicationContext context: Context
+    ): MotivationNotificationManager = MotivationNotificationManager(context)
+
+    @Provides
+    @Singleton
+    fun provideMotivationNotificationScheduler(
+        @ApplicationContext context: Context
+    ): MotivationNotificationScheduler = MotivationNotificationScheduler(context)
 }

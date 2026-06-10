@@ -36,7 +36,13 @@ fun AboutBottomSheet(
     viewModel: AboutViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { true }
+    )
+
+    val scrollState = rememberScrollState()
 
     if (isVisible) {
         ModalBottomSheet(
@@ -50,7 +56,7 @@ fun AboutBottomSheet(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .padding(bottom = 5.dp)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
