@@ -1,4 +1,4 @@
-# PixelHabit
+# PixelHabit V0.1.0
 
 
 <p align="center">
