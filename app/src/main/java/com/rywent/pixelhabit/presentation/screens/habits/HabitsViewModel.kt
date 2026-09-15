@@ -11,6 +11,7 @@ import com.rywent.pixelhabit.data.mapper.toHabitData
 import com.rywent.pixelhabit.data.mapper.toLifestyleData
 import com.rywent.pixelhabit.data.mapper.toPath
 import com.rywent.pixelhabit.data.mapper.toQuestData
+import com.rywent.pixelhabit.data.repository.FocusRepository
 import com.rywent.pixelhabit.data.repository.HabitRepository
 import com.rywent.pixelhabit.data.repository.LifestyleRepository
 import com.rywent.pixelhabit.data.repository.QuestRepository
@@ -27,12 +28,12 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
-
 @HiltViewModel
 class HabitsViewModel @Inject constructor(
     private val habitRepository: HabitRepository,
     private val lifestyleRepository: LifestyleRepository,
     private val questRepository: QuestRepository,
+    private val focusRepository: FocusRepository,
     private val notificationScheduler: HabitNotificationScheduler
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HabitsUIState())
@@ -43,7 +44,20 @@ class HabitsViewModel @Inject constructor(
     private var lifestyleStatsJob: Job? = null
 
     init {
+        viewModelScope.launch {
+            habitRepository.resetWeeklyProgressIfNeeded(userId)
+        }
         loadData()
+        observeFocusStats()
+    }
+
+    private fun observeFocusStats() {
+        viewModelScope.launch {
+            focusRepository.getTodayFocusSeconds().collect { sec ->
+                val minutes = sec / 60
+                _uiState.update { it.copy(avgFocusTime = minutes) }
+            }
+        }
     }
 
     fun onTabSelected(index: Int) {
@@ -56,11 +70,18 @@ class HabitsViewModel @Inject constructor(
             val habit = habitRepository.getHabitByIdByUserId(habitId, userId)
             val completions = habitRepository.getCompletionsForHabit(habitId).first()
 
+            val todayFocus = focusRepository.getTodayFocusSecondsForHabit(habitId).firstOrNull() ?: 0
+            val weeklyFocus = focusRepository.getWeeklyFocusSecondsForHabit(habitId).firstOrNull() ?: 0
+
+            val habitData = habit?.toHabitData()
+
             _uiState.update {
                 it.copy(
                     selectedHabitId = habitId,
-                    selectedHabit = habit?.toHabitData(),
+                    selectedHabit = habitData,
                     selectedHabitCompletions = completions,
+                    selectedHabitTodayFocusSeconds = todayFocus,
+                    selectedHabitWeeklyFocusSeconds = weeklyFocus,
                     showHabitDetailsPanel = true
                 )
             }
@@ -81,7 +102,9 @@ class HabitsViewModel @Inject constructor(
                 showHabitDetailsPanel = false,
                 selectedHabitId = null,
                 selectedHabit = null,
-                selectedHabitCompletions = emptyList()
+                selectedHabitCompletions = emptyList(),
+                selectedHabitTodayFocusSeconds = 0,
+                selectedHabitWeeklyFocusSeconds = 0
             )
         }
     }
@@ -234,7 +257,6 @@ class HabitsViewModel @Inject constructor(
         }
     }
 
-
     fun onLifestyleDelete(lifestyle: LifestyleData) {
         viewModelScope.launch {
             var otherLifestyle = lifestyleRepository.getDefaultOtherLifestyle(userId)
@@ -289,6 +311,7 @@ class HabitsViewModel @Inject constructor(
             )
         }
     }
+
     fun updateLifestyle(updatedLifestyle: LifestyleData) {
         viewModelScope.launch {
             lifestyleRepository.updateLifestyle(updatedLifestyle.toEntity(userId))
@@ -323,14 +346,42 @@ class HabitsViewModel @Inject constructor(
 
     private fun refreshAllHabits() {
         viewModelScope.launch {
-            val today = LocalDate.now().toString()
+            val today = LocalDate.now()
+            val todayString = today.toString()
+
+            val startOfWeek = today.with(java.time.DayOfWeek.MONDAY).toString()
+
+            habitRepository.resetWeeklyProgressIfNeeded(userId)
 
             val habits = habitRepository.getAllHabits(userId).firstOrNull() ?: return@launch
-            val completions = habitRepository.getCompletionsByDate(today).firstOrNull() ?: return@launch
+            val completions = habitRepository.getCompletionsByDate(todayString).firstOrNull() ?: return@launch
+
+            val weekCompletions = habitRepository.getCompletionsBetween(startOfWeek, todayString)
+
             val completedIds = completions.filter { it.completed }.map { it.habitId }.toSet()
 
+            val weeklyDoneMap = weekCompletions
+                .filter { it.completed }
+                .groupBy { it.habitId }
+                .mapValues { it.value.size }
+
             val updatedHabits = habits.map { entity ->
-                entity.toHabitData().copy(isCompletedToday = entity.id in completedIds)
+                var weeklyDone = weeklyDoneMap[entity.id] ?: 0
+
+                val weeklyGoal = entity.weeklyGoal
+                if (weeklyDone > weeklyGoal) {
+                    weeklyDone = weeklyGoal
+                }
+
+                val weeklyProgress = if (weeklyGoal > 0) {
+                    (weeklyDone.toFloat() / weeklyGoal).coerceIn(0f, 1f)
+                } else 0f
+
+                entity.toHabitData().copy(
+                    isCompletedToday = entity.id in completedIds,
+                    weeklyDone = weeklyDone,
+                    weeklyProgress = weeklyProgress
+                )
             }
 
             _uiState.update { state ->
@@ -340,10 +391,46 @@ class HabitsViewModel @Inject constructor(
         }
     }
 
-
-
+    // quest
     fun onQuestClick(questId: String) {
-        _uiState.update { it.copy(selectedQuestId = questId) }
+        viewModelScope.launch {
+            val questEntity = questRepository.getQuestById(questId)
+            _uiState.update {
+                it.copy(
+                    selectedQuestId = questId,
+                    selectedQuest = questEntity?.toQuestData(),
+                    showQuestDetailsPanel = true
+                )
+            }
+        }
+    }
+
+    fun onQuestDetailDismiss() {
+        _uiState.update {
+            it.copy(
+                showQuestDetailsPanel = false,
+                selectedQuestId = null,
+                selectedQuest = null
+            )
+        }
+    }
+
+    fun onIncrementQuestProgress(questId: String) {
+        viewModelScope.launch {
+            questRepository.incrementQuestProgress(questId)
+            // Обновляем данные открытой панели на лету
+            val updatedEntity = questRepository.getQuestById(questId)
+            _uiState.update {
+                it.copy(selectedQuest = updatedEntity?.toQuestData())
+            }
+        }
+    }
+
+    fun onQuestDelete(quest: QuestData) {
+        viewModelScope.launch {
+            questRepository.deleteQuest(quest.id)
+            onQuestDetailDismiss()
+        }
     }
 
     // create
@@ -396,6 +483,7 @@ class HabitsViewModel @Inject constructor(
 
     private fun loadData() {
         viewModelScope.launch {
+            habitRepository.resetWeeklyProgressIfNeeded(userId)
             lifestyleRepository.getLifestylesByUserId(userId).collect { lifestyles ->
                 _uiState.update { it ->
                     it.copy(lifestyles = lifestyles.map { it.toLifestyleData() })
@@ -404,16 +492,39 @@ class HabitsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val today = LocalDate.now().toString()
+            val today = LocalDate.now()
+            val startOfWeek = today.with(java.time.DayOfWeek.MONDAY).toString()
+            val todayString = today.toString()
 
             combine(
                 habitRepository.getAllHabits(userId),
-                habitRepository.getCompletionsByDate(today)
-            ) { habits, completions ->
-                val completedIds = completions.filter { it.completed }.map { it.habitId }.toSet()
+                habitRepository.getCompletionsByDate(todayString),
+                habitRepository.getWeekCompletionsFlow(startOfWeek, todayString)
+            ) { habits, todayCompletions, weekCompletions ->
+                val completedIds = todayCompletions.filter { it.completed }.map { it.habitId }.toSet()
+
+                val weeklyDoneMap = weekCompletions
+                    .filter { it.completed }
+                    .groupBy { it.habitId }
+                    .mapValues { it.value.size }
 
                 habits.map { entity ->
-                    entity.toHabitData().copy(isCompletedToday = entity.id in completedIds)
+                    var weeklyDone = weeklyDoneMap[entity.id] ?: 0
+
+                    val weeklyGoal = entity.weeklyGoal
+                    if (weeklyDone > weeklyGoal) {
+                        weeklyDone = weeklyGoal
+                    }
+
+                    val weeklyProgress = if (weeklyGoal > 0) {
+                        (weeklyDone.toFloat() / weeklyGoal).coerceIn(0f, 1f)
+                    } else 0f
+
+                    entity.toHabitData().copy(
+                        isCompletedToday = entity.id in completedIds,
+                        weeklyDone = weeklyDone,
+                        weeklyProgress = weeklyProgress
+                    )
                 }
             }.collect { allHabits ->
                 _uiState.update { it.copy(allHabits = allHabits) }
@@ -432,21 +543,20 @@ class HabitsViewModel @Inject constructor(
 
     private fun calculateStats(habits: List<HabitData>) {
         val totalHabitCount = habits.size
-        val habitsCompleted = habits.count { it.weeklyDone == it.weeklyGoal }
-        val completionRate = if (totalHabitCount > 0) {
-            (habits.sumOf { it.weeklyDone }.toFloat() / habits.sumOf { it.weeklyGoal }) * 100
+        val habitsCompleted = habits.count { it.weeklyDone >= it.weeklyGoal }
+
+        val totalWeeklyGoal = habits.sumOf { it.weeklyGoal }
+        val totalWeeklyDone = habits.sumOf { it.weeklyDone }
+        val completionRate = if (totalWeeklyGoal > 0) {
+            ((totalWeeklyDone.toFloat() / totalWeeklyGoal) * 100).coerceIn(0f, 100f)
         } else 0f
-        val avgFocusTime = 0
 
         _uiState.update {
             it.copy(
                 totalHabitCount = totalHabitCount,
                 habitsCompleted = habitsCompleted,
-                completionRate = completionRate,
-                avgFocusTime = avgFocusTime
+                completionRate = completionRate
             )
         }
     }
-
-
 }

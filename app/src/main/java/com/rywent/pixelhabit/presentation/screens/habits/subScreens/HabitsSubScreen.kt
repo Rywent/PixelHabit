@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -35,9 +34,7 @@ fun HabitsSubScreen(
     modifier: Modifier = Modifier
 ) {
 
-    val filteredHabits = remember(uiState.allHabits, uiState.currentFilter) {
-        filterHabits(uiState.allHabits, uiState.currentFilter)
-    }
+    val filteredHabits = filterHabits(uiState.allHabits, uiState.currentFilter)
 
     val activeFilterCount = uiState.currentFilter.activeCount
 

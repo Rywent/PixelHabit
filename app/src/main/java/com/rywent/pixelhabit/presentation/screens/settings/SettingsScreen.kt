@@ -21,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.rywent.pixelhabit.presentation.screens.about.AboutBottomSheet
+import com.rywent.pixelhabit.presentation.screens.about.AboutScreen
 import com.rywent.pixelhabit.presentation.screens.settings.components.BackupPanel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,7 +43,6 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues)
     ) {
         Row(
             modifier = Modifier
@@ -131,7 +131,7 @@ fun SettingsScreen(
     }
 
     if(uiState.showAboutSheet){
-        AboutBottomSheet(true, onDismiss = {viewModel.onDismissAbout()})
+        AboutScreen({viewModel.onDismissAbout()})
     }
 
     BackupPanel(

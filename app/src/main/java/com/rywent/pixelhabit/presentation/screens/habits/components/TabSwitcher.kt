@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -19,30 +20,39 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 @Composable
-fun HabitsTabSwitcher(
+fun TabSwitcher(
     tabs: List<String>,
     selectedIndex: Int,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
     val previousSelectedIndex = remember { mutableIntStateOf(selectedIndex) }
 
+    // Автопрокрутка к выбранному табу
     LaunchedEffect(selectedIndex) {
         if (selectedIndex != previousSelectedIndex.intValue) {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
         previousSelectedIndex.intValue = selectedIndex
+
+        // Прокручиваем так, чтобы выбранный элемент был виден
+        listState.animateScrollToItem(
+            index = selectedIndex,
+            scrollOffset = 0
+        )
     }
 
     LazyRow(
+        state = listState,
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
         contentPadding = PaddingValues(horizontal = 0.dp)
     ) {
         items(tabs.size) { index ->
             val isSelected = index == selectedIndex
-            val scope = rememberCoroutineScope()
             val pressScaleX = remember { Animatable(1f) }
 
             LaunchedEffect(isSelected) {

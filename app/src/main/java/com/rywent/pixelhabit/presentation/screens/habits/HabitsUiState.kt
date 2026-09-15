@@ -33,6 +33,8 @@ data class HabitsUIState(
     // habit
     val selectedHabit: HabitData? = null,
     val selectedHabitCompletions: List<HabitCompletionEntity> = emptyList(),
+    val selectedHabitTodayFocusSeconds: Int = 0,
+    val selectedHabitWeeklyFocusSeconds: Int = 0,
     val editingHabit: HabitData? = null,
     val currentFilter: HabitsFilter = HabitsFilter.all(),
 
@@ -48,6 +50,7 @@ data class HabitsUIState(
     val lifestyleMonthlyProgress: Int = 0,
 
     // quest
+    val selectedQuest: QuestData? = null,
 
 
     // week statistics

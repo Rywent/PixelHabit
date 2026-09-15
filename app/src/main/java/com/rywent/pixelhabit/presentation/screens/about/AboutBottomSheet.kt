@@ -2,6 +2,7 @@ package com.rywent.pixelhabit.presentation.screens.about
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,16 +14,13 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rywent.pixelhabit.R
 import com.rywent.pixelhabit.presentation.components.customElements.SineWaveLine
 import com.rywent.pixelhabit.presentation.screens.about.components.FeatureHeader
@@ -33,12 +31,10 @@ import com.rywent.pixelhabit.presentation.screens.about.components.InfoCardsList
 fun AboutBottomSheet(
     isVisible: Boolean,
     onDismiss: () -> Unit,
-    viewModel: AboutViewModel = hiltViewModel()
+    versions: List<VersionUiState>
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
+        skipPartiallyExpanded = false,
         confirmValueChange = { true }
     )
 
@@ -50,10 +46,11 @@ fun AboutBottomSheet(
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             contentColor = MaterialTheme.colorScheme.onSurface,
+            sheetGesturesEnabled = true,
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(horizontal = 20.dp)
                     .padding(bottom = 5.dp)
                     .verticalScroll(scrollState)
@@ -90,14 +87,21 @@ fun AboutBottomSheet(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                FeatureHeader(
-                    version = uiState.appVersion,
-                    data = uiState.releaseDate
-                )
+                versions.forEachIndexed { index, version ->
+                    FeatureHeader(
+                        version = version.version,
+                        data = version.releaseDate
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                InfoCardsList(sections = uiState.changelogSections)
+                    InfoCardsList(sections = version.sections)
+
+                    if (index < versions.size - 1) {
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                    }
+                }
             }
         }
     }

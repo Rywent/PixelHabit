@@ -4,9 +4,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.rywent.pixelhabit.presentation.screens.about.components.ChangelogItem
 
 data class AboutUiState(
-    val appVersion: String = "0.1.0",
-    val releaseDate: String = "May 2026",
-    val changelogSections: List<ChangelogSection> = emptyList()
+    val versions: List<VersionUiState> = emptyList()
+)
+
+data class VersionUiState(
+    val version: String,
+    val releaseDate: String,
+    val sections: List<ChangelogSection>
 )
 
 data class ChangelogSection(

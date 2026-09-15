@@ -39,7 +39,7 @@ private const val DAYS_IN_WEEK = 7
 fun ActivityHeatmap(
     completions: List<HabitCompletionEntity>,
     modifier: Modifier = Modifier,
-    onDayClick: ((LocalDate, Boolean) -> Unit)? = null,
+    onDayClick: ((LocalDate, Boolean, Boolean) -> Unit)? = null,
     activeColor: Color = MaterialTheme.colorScheme.primary,
     todayBorderColor: Color = MaterialTheme.colorScheme.primary
 ) {
@@ -96,7 +96,9 @@ fun ActivityHeatmap(
                         weeks.forEach { week ->
                             val date = week.getOrNull(index)
                             if (date != null && date in firstVisibleDate..today) {
-                                val isDone = completionMap[date]?.completed == true
+                                val completion = completionMap[date]
+                                val isDone = completion?.completed == true
+                                val isPostponed = completion?.isPostponed == true
                                 val isToday = date == today
                                 val isAnimating = animatedCell == date
 
@@ -109,6 +111,7 @@ fun ActivityHeatmap(
                                         .background(
                                             when {
                                                 isDone -> activeColor
+                                                isPostponed -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
                                                 isToday -> MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                                                 else -> MaterialTheme.colorScheme.surfaceVariant
                                             }
@@ -125,7 +128,10 @@ fun ActivityHeatmap(
                                         .clickable {
                                             animatedCell = date
                                             tooltipDate = date
-                                            onDayClick?.invoke(date, isDone)
+                                            val completion = completionMap[date]
+                                            val isDone = completion?.completed == true
+                                            val isPostponed = completion?.isPostponed == true
+                                            onDayClick?.invoke(date, isDone, isPostponed)
                                         }
                                 )
                             } else {
@@ -151,7 +157,32 @@ fun ActivityHeatmap(
                             scaleOut(targetScale = 0.7f, animationSpec = tween(150))
                 ) {
                     tooltipDate?.let { date ->
-                        val isDone = completionMap[date]?.completed == true
+                        val completion = completionMap[date]
+                        val isDone = completion?.completed == true
+                        val isPostponed = completion?.isPostponed == true
+                        val postponeReason = completion?.postponeReason
+
+                        val statusText = when {
+                            isDone -> "Done"
+                            isPostponed -> {
+                                if (!postponeReason.isNullOrBlank()) {
+                                    "Skipped: $postponeReason"
+                                } else {
+                                    "Skipped"
+                                }
+                            }
+                            else -> "Not done"
+                        }
+                        val statusColor = when {
+                            isDone -> activeColor
+                            isPostponed -> MaterialTheme.colorScheme.tertiary
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                        val statusIcon = when {
+                            isDone -> "✓"
+                            else -> "○"
+                        }
+
                         Surface(
                             modifier = Modifier.shadow(8.dp, RoundedCornerShape(12.dp)),
                             shape = RoundedCornerShape(12.dp),
@@ -164,9 +195,9 @@ fun ActivityHeatmap(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (isDone) "✓" else "○",
+                                    text = statusIcon,
                                     fontSize = 20.sp,
-                                    color = if (isDone) activeColor else MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = statusColor
                                 )
                                 Text(
                                     text = date.format(DateTimeFormatter.ofPattern("EEE, d MMM", Locale.ENGLISH)),
@@ -175,10 +206,11 @@ fun ActivityHeatmap(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = if (isDone) "Done" else "Not done",
+                                    text = statusText,
                                     fontSize = 13.sp,
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = if (isDone) activeColor else MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = statusColor,
+                                    maxLines = 2
                                 )
                             }
                         }

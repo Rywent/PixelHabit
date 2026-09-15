@@ -9,8 +9,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.Update
+import androidx.compose.material.icons.rounded.DataUsage
 import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rywent.pixelhabit.data.local.entity.HabitCompletionEntity
+import com.rywent.pixelhabit.data.mapper.toFormattedDate
 import com.rywent.pixelhabit.presentation.components.ActivityHeatmap
 import com.rywent.pixelhabit.presentation.components.habit.HabitData
 import com.rywent.pixelhabit.presentation.screens.habits.infoPanels.habits.CategoryCard
@@ -33,6 +38,8 @@ import kotlinx.coroutines.launch
 fun HabitInfoPanel(
     habit: HabitData,
     completions: List<HabitCompletionEntity>,
+    todayFocusSeconds: Int = 0,
+    weeklyFocusSeconds: Int = 0,
     onDismiss: () -> Unit,
     onEdit: (HabitData) -> Unit = {},
     onDelete: (HabitData) -> Unit = {}
@@ -148,6 +155,44 @@ fun HabitInfoPanel(
                     icon = Icons.Rounded.Star,
                     color = MaterialTheme.colorScheme.primary
                 )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (todayFocusSeconds > 0 || weeklyFocusSeconds > 0) {
+                Text(
+                    text = "Focus Insights",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    StatChip(
+                        modifier = Modifier.weight(1f),
+                        label = "Today",
+                        value = formatTime(todayFocusSeconds),
+                        unit = "focus",
+                        icon = Icons.Rounded.Timer,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+
+                    StatChip(
+                        modifier = Modifier.weight(1f),
+                        label = "This week",
+                        value = formatTime(weeklyFocusSeconds),
+                        unit = "focus",
+                        icon = Icons.Rounded.DataUsage,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -275,6 +320,99 @@ fun HabitInfoPanel(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // Info
+            Text(
+                text = "Habit Information",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Created
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarToday,
+                            contentDescription = null,
+                            tint = habit.habitColor,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Column {
+                            Text(
+                                text = "Created",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = habit.createdAt.toFormattedDate(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier,
+                        thickness = DividerDefaults.Thickness,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+
+                    // Last updated
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Update,
+                            contentDescription = null,
+                            tint = habit.habitColor,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Column {
+                            Text(
+                                text = "Last updated",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = habit.updatedAt.toFormattedDate(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+
+                    HorizontalDivider(
+                        modifier = Modifier,
+                        thickness = DividerDefaults.Thickness,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             // Action buttons
             Row(
                 modifier = Modifier
@@ -372,6 +510,13 @@ fun HabitInfoPanel(
     }
 }
 
-
-
+private fun formatTime(seconds: Int): String {
+    val hours = seconds / 3600
+    val minutes = (seconds % 3600) / 60
+    return when {
+        hours > 0 -> "${hours}h ${minutes}m"
+        minutes > 0 -> "${minutes}m"
+        else -> "${seconds}s"
+    }
+}
 

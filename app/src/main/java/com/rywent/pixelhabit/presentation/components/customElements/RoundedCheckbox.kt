@@ -64,7 +64,7 @@ fun RoundedCheckbox(
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
-                tint = Color.White,
+                tint = scheme.onPrimary,
                 modifier = Modifier.size(18.dp)
             )
         }

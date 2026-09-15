@@ -21,12 +21,24 @@ data class HomeUiState(
     val showCreateHabitPanel: Boolean = false,
     val showAboutSheet: Boolean = false,
 
+    // statistics panel
+    val showStatisticsPanel: Boolean = false,
+    val selectedStatisticsTabIndex: Int = 1,
+    val lastWeekStat: List<DayStat> = emptyList(),
+    val currentMonthStats: List<DayStat> = emptyList(),
+    val lastMonthStats: List<DayStat> = emptyList(),
+
+
     // streak panel
     val streakPanelValue: Int = 0,
 
     // habits
     val todayHabits: List<TodayHabitData> = emptyList(),
     val isTodayHabitsExpanded: Boolean = false,
+
+    // postpone
+    val showPostponeSheet: Boolean = false,
+    val selectedHabitId: String? = null,
 
     // data
     val weekStat: List<DayStat> = emptyList(),

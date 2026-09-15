@@ -33,6 +33,12 @@ data class QuestEntity(
     val isCompleted: Boolean,
     val completionPercent: Float,
 
+    val failureMode: String = "SHIFT",  // "FAIL" or "SHIFT"
+    val isFailed: Boolean = false,
+    val lastCompletionDate: String? = null,
+    val skippedDays: Int = 0,
+
+
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
 

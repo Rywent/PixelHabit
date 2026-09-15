@@ -16,7 +16,9 @@ import java.util.UUID
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("habitId", "date")]
+    indices = [
+        Index(value = ["habitId", "date"], unique = true)
+    ]
 )
 data class HabitCompletionEntity(
     @PrimaryKey
@@ -24,6 +26,8 @@ data class HabitCompletionEntity(
     val habitId: String,
     val date: String,
     val completed: Boolean = false,
-    val completedAt: Long? = null
+    val completedAt: Long? = null,
+    val isPostponed: Boolean = false,
+    val postponeReason: String? = null
 )
 

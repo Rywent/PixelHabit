@@ -1,10 +1,13 @@
 package com.rywent.pixelhabit.di
 
+import com.rywent.pixelhabit.data.local.dao.FocusPresetDao
+import com.rywent.pixelhabit.data.local.dao.FocusSessionDao
 import com.rywent.pixelhabit.data.local.dao.HabitCompletionDao
 import com.rywent.pixelhabit.data.local.dao.HabitDao
 import com.rywent.pixelhabit.data.local.dao.LifestyleDao
 import com.rywent.pixelhabit.data.local.dao.QuestDao
 import com.rywent.pixelhabit.data.local.dao.UserDao
+import com.rywent.pixelhabit.data.repository.FocusRepository
 import com.rywent.pixelhabit.data.repository.HabitRepository
 import com.rywent.pixelhabit.data.repository.LifestyleRepository
 import com.rywent.pixelhabit.data.repository.QuestRepository
@@ -44,5 +47,14 @@ object RepositoryModule {
     @Singleton
     fun provideQuestRepository(questDao: QuestDao): QuestRepository {
         return QuestRepository(questDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFocusRepository(
+        sessionDao: FocusSessionDao,
+        presetDao: FocusPresetDao
+    ): FocusRepository {
+        return FocusRepository(sessionDao, presetDao)
     }
 }

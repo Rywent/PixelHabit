@@ -28,7 +28,9 @@ fun HabitEntity.toHabitData(): HabitData {
         currentStreak = currentStreak,
         bestStreak = bestStreak,
         isCompletedToday = false,
-        lifestyleId = lifestyleId
+        lifestyleId = lifestyleId,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
     )
 }
 
@@ -41,6 +43,8 @@ fun HabitWithCompletion.toTodayHabitData(): TodayHabitData {
         streak = habit.currentStreak,
         icon = habit.iconPath.toIcon(),
         isCompleted = this.isCompleted,
+        isPostponed = this.isPostponed ?: false,
+        postponeReason = this.postponeReason,
         lifestyleId = habit.lifestyleId
     )
 }
@@ -67,6 +71,8 @@ fun HabitData.toEntity(userId: String): HabitEntity {
         currentStreak = currentStreak,
         bestStreak = bestStreak,
         userId = userId,
-        lifestyleId = lifestyleId
+        lifestyleId = lifestyleId,
+        createdAt = createdAt,
+        updatedAt = updatedAt
     )
 }

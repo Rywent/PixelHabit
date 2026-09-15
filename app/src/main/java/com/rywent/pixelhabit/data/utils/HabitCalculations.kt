@@ -1,5 +1,6 @@
 package com.rywent.pixelhabit.data.utils
 
+import com.rywent.pixelhabit.data.local.entity.HabitCompletionEntity
 import com.rywent.pixelhabit.data.local.entity.HabitEntity
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -24,17 +25,9 @@ fun findPreviousScheduledDate(habit: HabitEntity, fromDate: LocalDate): LocalDat
     return null
 }
 
-fun shouldResetStreak(
-    habit: HabitEntity,
-    yesterday: String,
-    yesterdayDayOfWeek: String,
-    today: String,
-    yesterdayCompleted: Boolean,
-    todayCompleted: Boolean
-): Boolean {
-    val shouldHaveDoneYesterday = isHabitScheduledForDate(habit, yesterday, yesterdayDayOfWeek)
-
-    return shouldHaveDoneYesterday && !yesterdayCompleted && !todayCompleted && habit.currentStreak > 0
+fun isScheduledDay(habit: HabitEntity, date: LocalDate): Boolean {
+    val dayOfWeek = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
+    return isHabitScheduledForDate(habit, date.toString(), dayOfWeek)
 }
 
 fun shouldResetWeeklyProgress(habit: HabitEntity, today: LocalDate): Boolean {
@@ -70,4 +63,27 @@ fun calculateNewStreak(currentStreak: Int, prevCompleted: Boolean): Int {
 
 fun calculateBestStreak(newStreak: Int, currentBest: Int): Int {
     return maxOf(newStreak, currentBest)
+}
+
+
+data class DayStatus(
+    val isCompleted: Boolean,
+    val isPostponed: Boolean,
+    val isScheduled: Boolean
+)
+
+fun getDayStatus(
+    habit: HabitEntity,
+    date: LocalDate,
+    completion: HabitCompletionEntity?
+): DayStatus {
+    val isScheduled = isScheduledDay(habit, date)
+    val isCompleted = completion?.completed == true
+    val isPostponed = completion?.isPostponed == true
+
+    return DayStatus(
+        isCompleted = isCompleted,
+        isPostponed = isPostponed,
+        isScheduled = isScheduled
+    )
 }

@@ -2,6 +2,7 @@ package com.rywent.pixelhabit.notifications
 
 import android.content.Context
 import androidx.work.WorkManager
+import com.rywent.pixelhabit.notifications.focus.FocusNotificationManager
 import com.rywent.pixelhabit.notifications.habit.HabitNotificationManager
 import com.rywent.pixelhabit.notifications.habit.HabitNotificationScheduler
 import com.rywent.pixelhabit.notifications.motivation.MotivationNotificationManager
@@ -46,4 +47,10 @@ object NotificationModule {
     fun provideMotivationNotificationScheduler(
         @ApplicationContext context: Context
     ): MotivationNotificationScheduler = MotivationNotificationScheduler(context)
+
+    @Provides
+    @Singleton
+    fun provideFocusNotificationManager(
+        @ApplicationContext context: Context
+    ): FocusNotificationManager = FocusNotificationManager(context)
 }

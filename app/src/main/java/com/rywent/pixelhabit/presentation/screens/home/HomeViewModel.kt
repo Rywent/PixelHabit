@@ -12,6 +12,7 @@ import com.rywent.pixelhabit.data.repository.UserRepository
 import com.rywent.pixelhabit.data.utils.isHabitScheduledForDate
 import com.rywent.pixelhabit.notifications.habit.HabitNotificationScheduler
 import com.rywent.pixelhabit.presentation.components.habit.HabitData
+import com.rywent.pixelhabit.presentation.screens.habits.components.HabitsFilter.Companion.today
 import com.rywent.pixelhabit.presentation.screens.home.components.DayStat
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -128,11 +130,87 @@ class HomeViewModel @Inject constructor(
             val dayOfWeek = LocalDate.now().dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
             val (startOfWeek, endOfWeek) = getWeekRange()
 
+            val today = LocalDate.now()
+            val lastMn = today
+                .minusWeeks(1)
+                .with(DayOfWeek.MONDAY)
+                .toString()
+
+
+            val lasSu = today
+                .minusWeeks(1)
+                .with(DayOfWeek.SUNDAY)
+                .toString()
+
             launch { collectWeekCompletions(startOfWeek, endOfWeek) }
+            launch { collectLastWeekCompletions(lastMn,lasSu) }
             collectTodayHabits(todayDateString, dayOfWeek)
         }
     }
 
+    fun onPostponeHabit(habitId: String) {
+        _uiState.update {
+            it.copy(
+                showPostponeSheet = true,
+                selectedHabitId = habitId
+            )
+        }
+    }
+    fun cancelPostponeHabit(habitId: String) {
+        viewModelScope.launch {
+            try {
+                val today = LocalDate.now().toString()
+
+                habitRepository.postponeHabit(
+                    habitId = habitId,
+                    date = today,
+                    reason = null,
+                    isPostponed = false
+                )
+                loadTodayHabits()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun onDismissPostponeSheet() {
+        _uiState.update {
+            it.copy(
+                showPostponeSheet = false,
+                selectedHabitId = null
+            )
+        }
+    }
+
+    fun confirmPostponeHabit(reason: String, isPostponed: Boolean = true) {
+        val habitId = _uiState.value.selectedHabitId ?: return
+
+        viewModelScope.launch {
+            try {
+                val today = LocalDate.now().toString()
+
+                habitRepository.postponeHabit(habitId,
+                    today,
+                    reason = if (isPostponed) reason.ifBlank { null } else null,
+                    isPostponed)
+
+                loadTodayHabits()
+
+                _uiState.update {
+                    it.copy(
+                        showPostponeSheet = false,
+                        selectedHabitId = null
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+
+    // week
     private fun getWeekRange(): Pair<String, String> {
         val today = LocalDate.now()
         val startOfWeek = today.with(java.time.DayOfWeek.MONDAY)
@@ -146,6 +224,22 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private suspend fun collectLastWeekCompletions(startOfWeek: String, endOfWeek: String) {
+        habitRepository.getWeekCompletionsFlow(startOfWeek, endOfWeek).collect { completions ->
+            val weekStartDate = LocalDate.parse(startOfWeek)
+            _uiState.update {
+                it.copy(lastWeekStat = calculateWeekStatsForRange(completions, weekStartDate))
+            }
+        }
+    }
+
+
+    fun onStatisticsTabSelected(index: Int) {
+        _uiState.update { it.copy(selectedStatisticsTabIndex = index) }
+    }
+
+
+
     private suspend fun collectTodayHabits(todayDateString: String, dayOfWeek: String) {
         habitRepository.getHabitsForToday(userId, todayDateString).collect { habits ->
             val todayHabits = habits
@@ -155,6 +249,7 @@ class HomeViewModel @Inject constructor(
             _uiState.update { it.copy(todayHabits = todayHabits) }
         }
     }
+
 
     fun onHabitCheckboxClicked(id: String, isCompleted: Boolean) {
         viewModelScope.launch {
@@ -174,6 +269,12 @@ class HomeViewModel @Inject constructor(
 
 
 
+    fun onWeekStatisticsClicked(){
+        _uiState.update { it.copy(showStatisticsPanel = true) }
+    }
+    fun onDismissWeekStatistics(){
+        _uiState.update { it.copy(showStatisticsPanel = false) }
+    }
     fun onAboutClicked() {
         _uiState.update { it.copy(showAboutSheet = true) }
     }
@@ -235,6 +336,22 @@ class HomeViewModel @Inject constructor(
 
         return dayNames.mapIndexed { index, shortName ->
             val date = startOfWeek.plusDays(index.toLong())
+            val value = when {
+                date.isAfter(today) -> -1
+                else -> completions.count { it.date == date.toString() }
+            }
+            DayStat(shortName = shortName, value = value)
+        }
+    }
+    private fun calculateWeekStatsForRange(
+        completions: List<HabitCompletionEntity>,
+        weekStart: LocalDate
+    ): List<DayStat> {
+        val dayNames = listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")
+        val today = LocalDate.now()
+
+        return dayNames.mapIndexed { index, shortName ->
+            val date = weekStart.plusDays(index.toLong())
             val value = when {
                 date.isAfter(today) -> -1
                 else -> completions.count { it.date == date.toString() }

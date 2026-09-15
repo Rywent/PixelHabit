@@ -19,10 +19,12 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,9 +38,11 @@ import androidx.navigation.NavController
 import com.rywent.pixelhabit.presentation.components.habit.HabitTodayCard
 import com.rywent.pixelhabit.presentation.components.habit.TodayHabitData
 import com.rywent.pixelhabit.presentation.components.panels.CreateHabitPanel
+import com.rywent.pixelhabit.presentation.components.panels.PostponeBottomSheet
 import com.rywent.pixelhabit.presentation.components.panels.StreakPanel
 import com.rywent.pixelhabit.presentation.navigation.Screen
 import com.rywent.pixelhabit.presentation.screens.about.AboutBottomSheet
+import com.rywent.pixelhabit.presentation.screens.about.AboutScreen
 import com.rywent.pixelhabit.presentation.screens.home.components.AddHabitButton
 import com.rywent.pixelhabit.presentation.screens.home.components.HeaderButtons
 import com.rywent.pixelhabit.presentation.screens.home.components.NoHabitsToday
@@ -55,6 +59,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
 
     Box(
         modifier = Modifier
@@ -95,7 +100,9 @@ fun HomeScreen(
             item {
 
                 Spacer(modifier = Modifier.height(20.dp))
-                WeekStatistics(data = uiState.weekStat, onWeekClick = {})
+                WeekStatistics(data = uiState.weekStat, onWeekClick = {
+                    navController.navigate(Screen.WeekStatistics.route)
+                })
             }
             item {
                 Spacer(modifier = Modifier.height(40.dp))
@@ -133,8 +140,16 @@ fun HomeScreen(
                         streak = habit.streak,
                         icon = habit.icon,
                         isCompleted = habit.isCompleted,
+                        isPostponed = habit.isPostponed,
                         onCheckedChange = { completed ->
                             viewModel.onHabitCheckboxClicked(habit.id, completed)
+                        },
+                        onPostpone = {
+                            if (habit.isPostponed) {
+                                viewModel.cancelPostponeHabit(habit.id)
+                            } else {
+                                viewModel.onPostponeHabit(habit.id)
+                            }
                         }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -154,10 +169,6 @@ fun HomeScreen(
                 .align(Alignment.TopCenter)
                 .padding(start = 10.dp, end = 10.dp, top = 8.dp)
         )
-
-        if(uiState.showAboutSheet){
-            AboutBottomSheet(true, onDismiss = {viewModel.onDismissAbout()})
-        }
 
         AnimatedVisibility(
             visible = uiState.showStreakPanel,
@@ -193,12 +204,25 @@ fun HomeScreen(
             }
         }
 
+        if(uiState.showAboutSheet){
+            AboutScreen({viewModel.onDismissAbout()})
+        }
+
         if (uiState.showCreateHabitPanel) {
             CreateHabitPanel(
                 onDismiss = { viewModel.onDismissCreateHabitPanel() },
                 lifestyles = uiState.lifestyles,
                 onHabitCreated = { habit ->
                     viewModel.createHabit(habit)
+                }
+            )
+        }
+
+        if (uiState.showPostponeSheet) {
+            PostponeBottomSheet(
+                onDismiss = { viewModel.onDismissPostponeSheet() },
+                onConfirm = { reason ->
+                    viewModel.confirmPostponeHabit(reason)
                 }
             )
         }

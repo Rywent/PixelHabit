@@ -22,12 +22,17 @@ class HabitRepository(
     private val habitDao: HabitDao,
     private val completionDao: HabitCompletionDao
 ) {
+
     fun getHabitsForToday(userId: String, today: String): Flow<List<HabitWithCompletion>> {
         return habitDao.getHabitsForToday(userId, today)
     }
 
     fun getAllHabits(userId: String): Flow<List<HabitEntity>> {
         return habitDao.getAllHabits(userId)
+    }
+
+    suspend fun getCompletion(habitId: String, date: String): HabitCompletionEntity? {
+        return completionDao.getCompletion(habitId, date)
     }
 
     suspend fun getHabitsByLifestyleIdOnce(lifestyleId: String, userId: String): List<HabitEntity> {
@@ -59,24 +64,13 @@ class HabitRepository(
     @Transaction
     suspend fun toggleCompletion(habitId: String, date: String, completed: Boolean) {
         try {
-            val existing = completionDao.getCompletion(habitId, date)
-
-            if (existing != null) {
-                completionDao.updateCompletion(
-                    habitId = habitId,
-                    date = date,
-                    completed = completed,
-                    completedAt = if (completed) System.currentTimeMillis() else null
-                )
-            } else {
-                val completion = HabitCompletionEntity(
-                    habitId = habitId,
-                    date = date,
-                    completed = completed,
-                    completedAt = if (completed) System.currentTimeMillis() else null
-                )
-                completionDao.upsertCompletion(completion)
-            }
+            val completion = HabitCompletionEntity(
+                habitId = habitId,
+                date = date,
+                completed = completed,
+                completedAt = if (completed) System.currentTimeMillis() else null
+            )
+            completionDao.upsertCompletion(completion)
 
             val habit = habitDao.getHabitById(habitId) ?: return
 
@@ -103,6 +97,21 @@ class HabitRepository(
             e.printStackTrace()
         }
     }
+    suspend fun postponeHabit(habitId: String, date: String, reason: String?, isPostponed: Boolean = true) {
+        try {
+            val completion = HabitCompletionEntity(
+                habitId = habitId,
+                date = date,
+                completed = false,
+                isPostponed = isPostponed,
+                postponeReason = if (isPostponed) reason else null,
+                completedAt = null
+            )
+            completionDao.upsertCompletion(completion)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     suspend fun checkAndResetStreaks(userId: String) {
         val today = LocalDate.now()
@@ -122,8 +131,10 @@ class HabitRepository(
                 val todayCompletion = completionDao.getCompletion(habit.id, todayString)
                 val isScheduledToday = isHabitScheduledForDate(habit, todayString, todayDayOfWeek)
 
-                if (lastScheduledCompletion?.completed != true &&
-                    habit.currentStreak > 0) {
+                val lastScheduledDone = lastScheduledCompletion?.completed == true ||
+                        lastScheduledCompletion?.isPostponed == true
+
+                if (!lastScheduledDone && habit.currentStreak > 0) {
                     if ((isScheduledToday && todayCompletion?.completed != true) || !isScheduledToday) {
                         habitDao.updateStreak(habit.id, 0, habit.bestStreak, System.currentTimeMillis())
                     }
@@ -173,12 +184,18 @@ class HabitRepository(
         var currentDate = LocalDate.parse(fromDate).minusDays(1)
         var daysChecked = 0
 
-        while (daysChecked < 365) {
+        while (daysChecked < 30) {
             val dayOfWeek = currentDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
+            val habitCreatedDate = LocalDate.ofEpochDay(habit.createdAt / 86400000)
+            val habitExists = !habitCreatedDate.isAfter(currentDate)
 
-            if (isHabitScheduledForDate(habit, currentDate.toString(), dayOfWeek)) {
+            if (habitExists && isHabitScheduledForDate(habit, currentDate.toString(), dayOfWeek)) {
                 val completion = completionDao.getCompletion(habitId, currentDate.toString())
-                if (completion?.completed == true) {
+
+                val isCompleted = completion?.completed == true
+                val isPostponed = completion?.isPostponed == true
+
+                if (isCompleted || isPostponed) {
                     streak++
                     currentDate = currentDate.minusDays(1)
                 } else {
@@ -192,17 +209,22 @@ class HabitRepository(
         return streak
     }
 
+    private fun isHabitExistsOnDate(habit: HabitEntity, date: LocalDate): Boolean {
+        val habitCreatedDate = LocalDate.ofEpochDay(habit.createdAt / 86400000)
+        return !habitCreatedDate.isAfter(date)
+    }
+
     suspend fun calculateAndUpdateGlobalStreak(userId: String): Int {
         val today = LocalDate.now()
         val todayString = today.toString()
         val todayDayOfWeek = today.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
 
         val allHabits = habitDao.getAllHabitsOnce(userId)
-
         if (allHabits.isEmpty()) return 0
 
-        val scheduledToday = allHabits.filter {
-            isHabitScheduledForDate(it, todayString, todayDayOfWeek)
+        val scheduledToday = allHabits.filter { habit ->
+            isHabitExistsOnDate(habit, today) &&
+                    isHabitScheduledForDate(habit, todayString, todayDayOfWeek)
         }
 
         if (scheduledToday.isEmpty()) {
@@ -210,8 +232,11 @@ class HabitRepository(
         }
 
         val completionsToday = completionDao.getCompletionsByDateOnce(todayString)
+
         val doneCountToday = scheduledToday.count { habit ->
-            completionsToday.any { it.habitId == habit.id && it.completed }
+            completionsToday.any {
+                it.habitId == habit.id && (it.completed || it.isPostponed)
+            }
         }
 
         val isTodayPassed = doneCountToday.toFloat() / scheduledToday.size >= 0.5f
@@ -230,23 +255,30 @@ class HabitRepository(
     ): Int {
         var streak = 0
         var currentDate = fromDate
+        var daysChecked = 0
+        val maxDays = 30
 
-        while (streak < 365) {
+        while (daysChecked < maxDays && streak < maxDays) {
             val dateString = currentDate.toString()
             val dayOfWeek = currentDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)
 
-            val scheduled = allHabits.filter {
-                isHabitScheduledForDate(it, dateString, dayOfWeek)
+            val scheduled = allHabits.filter { habit ->
+                isHabitExistsOnDate(habit, currentDate) &&
+                        isHabitScheduledForDate(habit, dateString, dayOfWeek)
             }
 
             if (scheduled.isEmpty()) {
                 currentDate = currentDate.minusDays(1)
+                daysChecked++
                 continue
             }
 
             val completions = completionDao.getCompletionsByDateOnce(dateString)
+
             val doneCount = scheduled.count { habit ->
-                completions.any { it.habitId == habit.id && it.completed }
+                completions.any {
+                    it.habitId == habit.id && (it.completed || it.isPostponed)
+                }
             }
 
             if (doneCount.toFloat() / scheduled.size >= 0.5f) {
@@ -255,6 +287,7 @@ class HabitRepository(
             } else {
                 break
             }
+            daysChecked++
         }
 
         return streak

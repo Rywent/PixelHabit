@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.quests.FailureMode
 import com.rywent.pixelhabit.ui.theme.adaptiveShadowColor
 
 @Composable
@@ -217,6 +218,10 @@ data class QuestData(
     val totalDays: Int,
     val currentDay: Int,
     val daysLeft: Int,
+    val failureMode: FailureMode = FailureMode.SHIFT,
+    val isFailed: Boolean = false,
+    val lastCompletionDate: String? = null,
+    val skippedDays: Int = 0,
     val startDate: String,
     val endDate: String,
     val isCompleted: Boolean,

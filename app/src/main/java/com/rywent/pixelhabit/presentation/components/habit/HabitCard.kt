@@ -244,5 +244,7 @@ data class HabitData(
     val currentStreak: Int,
     val bestStreak: Int,
     val isCompletedToday: Boolean = false,
-    val lifestyleId: String? = null
+    val lifestyleId: String? = null,
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis(),
 )

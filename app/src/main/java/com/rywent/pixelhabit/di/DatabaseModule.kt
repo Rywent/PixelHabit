@@ -3,6 +3,8 @@ package com.rywent.pixelhabit.di
 import android.content.Context
 import androidx.room.Room
 import com.rywent.pixelhabit.data.local.AppDatabase
+import com.rywent.pixelhabit.data.local.dao.FocusPresetDao
+import com.rywent.pixelhabit.data.local.dao.FocusSessionDao
 import com.rywent.pixelhabit.data.local.dao.HabitCompletionDao
 import com.rywent.pixelhabit.data.local.dao.HabitDao
 import com.rywent.pixelhabit.data.local.dao.LifestyleDao
@@ -65,4 +67,12 @@ object DatabaseModule {
     fun provideQuestDao(database: AppDatabase): QuestDao{
         return database.questDao()
     }
+
+    @Provides
+    fun provideFocusSessionDao(database: AppDatabase): FocusSessionDao =
+        database.focusSessionDao()
+
+    @Provides
+    fun provideFocusPresetDao(database: AppDatabase): FocusPresetDao =
+        database.focusPresetDao()
 }

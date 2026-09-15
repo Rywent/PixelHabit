@@ -14,13 +14,26 @@ interface HabitCompletionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertCompletion(completion: HabitCompletionEntity)
 
-    @Query("update habit_completions set completed = :completed, completedAt = :completedAt where habitId = :habitId and date = :date")
-    suspend fun updateCompletion(habitId: String, date: String, completed: Boolean, completedAt: Long?)
+    @Query("""
+        UPDATE habit_completions 
+        SET completed = :completed, 
+            completedAt = :completedAt,
+            isPostponed = :isPostponed,
+            postponeReason = :postponeReason
+        WHERE habitId = :habitId AND date = :date
+    """)
+    suspend fun updateCompletion(
+        habitId: String,
+        date: String,
+        completed: Boolean,
+        completedAt: Long?,
+        isPostponed: Boolean = false,
+        postponeReason: String? = null
+    )
 
     // get all completion for habit
     @Query("select * from habit_completions where habitId = :habitId order by date desc")
     fun getCompletionsForHabit(habitId: String): Flow<List<HabitCompletionEntity>>
-
 
     // get week completion
     @Query("""

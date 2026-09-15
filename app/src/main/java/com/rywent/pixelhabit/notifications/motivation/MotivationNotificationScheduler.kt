@@ -24,12 +24,8 @@ class MotivationNotificationScheduler(
     )
 
     private val timeSlots = listOf(
-        MotivationTimeSlot("morning", 8, 0, 1001),
-        MotivationTimeSlot("morning", 10, 0, 1002),
-        MotivationTimeSlot("afternoon", 12, 0, 1003),
-        MotivationTimeSlot("afternoon", 14, 0, 1004),
-        MotivationTimeSlot("evening", 18, 0, 1005),
-        MotivationTimeSlot("evening", 20, 0, 1006)
+        MotivationTimeSlot("morning", 9, 0, 1001),
+        MotivationTimeSlot("evening", 19, 0, 1002)
     )
 
     fun scheduleMotivationNotifications() {
@@ -105,6 +101,7 @@ class MotivationNotificationScheduler(
             try {
                 val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
                     data = "package:${context.packageName}".toUri()
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 context.startActivity(intent)
             } catch (e: Exception) {
@@ -125,6 +122,4 @@ class MotivationNotificationScheduler(
             alarmManager.cancel(pendingIntent)
         }
     }
-
-
 }

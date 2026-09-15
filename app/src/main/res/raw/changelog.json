@@ -1,0 +1,64 @@
+{
+  "versions": [
+    {
+      "version": "0.1.0",
+      "releaseDate": "June 13, 2026",
+      "sections": [
+        {
+          "header": "Features",
+          "icon": "star",
+          "items": [
+            {
+              "title": "Adaptive Theme",
+              "description": "Automatic light/dark theme switching based on system settings, with dynamic accent color extraction."
+            },
+            {
+              "title": "Global Streak and Flame Animation",
+              "description": "Introduced the global streak panel with flame animation."
+            },
+            {
+              "title": "Weekly Progress Chart",
+              "description": "Added real-time visualization of global streak and weekly progress."
+            },
+            {
+              "title": "Today's habits section",
+              "description": "A convenient section for displaying today's habits."
+            },
+            {
+              "title": "Detailed statistics",
+              "description": "Stuff statistics for this week, last week, prime week, this month, and last month."
+            },
+            {
+              "title": "Export & Import Data",
+              "description": "Import/export your data. Also, preview what exactly will be imported."
+            },
+            {
+              "title": "Notifications",
+              "description": "Habit reminders, motivational notifications, and streak alerts"
+            },
+            {
+              "title": "Lifestyle",
+              "description": "Custom habit categories with unique name validation. Create goal-based plans (e.g., 30 times in 30 days) and track completion separately from daily streaks."
+            },
+            {
+              "title": "Lifestyle Dashboard",
+              "description": "Category-level stats: monthly goal with circular progress, weekly completions, habit overview (total habits / completed today), creation date, status badge, and delete with archive warning."
+            },
+            {
+              "title": "Habit",
+              "description": "6-step form with full customization: name, icon & color, description, Lifestyle category, frequency (daily/weekdays/weekends/custom), and time of day with optional specific time (e.g., morning + 08:00)."
+            },
+            {
+              "title": "Habit Details Panel",
+              "description": "Detailed habit management: current/best streak, weekly progress, activity heatmap, schedule info, creation/last updated dates, and delete confirmation."
+            },
+            {
+              "title": "Quests",
+              "description": "Time-limited challenges (not habits, not tasks). Set name, description, icon, color, duration (1–365 days), and start date. Track progress day by day."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

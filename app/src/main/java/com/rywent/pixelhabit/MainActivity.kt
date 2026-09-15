@@ -13,6 +13,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,6 +32,7 @@ import com.rywent.pixelhabit.notifications.NotificationChannels
 import com.rywent.pixelhabit.presentation.components.MainBottomNavigationBar
 import com.rywent.pixelhabit.presentation.navigation.AppNavigation
 import com.rywent.pixelhabit.presentation.navigation.isMainRoute
+import com.rywent.pixelhabit.presentation.screens.focus.FocusImmersiveHolder
 import com.rywent.pixelhabit.ui.theme.PixelHabitTheme
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.core.net.toUri
@@ -66,7 +74,33 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     containerColor = MaterialTheme.colorScheme.background,
                     bottomBar = {
-                        if (isMainRoute(currentRoute)) {
+                        AnimatedVisibility(
+                            visible = isMainRoute(currentRoute) && !FocusImmersiveHolder.isImmersive,
+                            enter = slideInVertically(
+                                initialOffsetY = { it },
+                                animationSpec = tween(
+                                    durationMillis = 150,
+                                    easing = FastOutSlowInEasing
+                                )
+                            ) + fadeIn(
+                                animationSpec = tween(
+                                    durationMillis = 150,
+                                    easing = FastOutSlowInEasing
+                                )
+                            ),
+                            exit = slideOutVertically(
+                                targetOffsetY = { it },
+                                animationSpec = tween(
+                                    durationMillis = 150,
+                                    easing = FastOutSlowInEasing
+                                )
+                            ) + fadeOut(
+                                animationSpec = tween(
+                                    durationMillis = 150,
+                                    easing = FastOutSlowInEasing
+                                )
+                            )
+                        ) {
                             MainBottomNavigationBar(navController = navController)
                         }
                     }
@@ -91,7 +125,6 @@ class MainActivity : ComponentActivity() {
                 return
             }
         }
-        requestExactAlarmPermission()
     }
 
     private fun requestExactAlarmPermission() {

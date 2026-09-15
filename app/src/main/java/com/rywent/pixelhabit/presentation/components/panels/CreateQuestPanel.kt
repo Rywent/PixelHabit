@@ -20,8 +20,10 @@ import com.rywent.pixelhabit.presentation.components.customElements.PixelSliderP
 import com.rywent.pixelhabit.presentation.screens.habits.components.QuestData
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.habits.ColorPickerScreen
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.habits.FullIconPicker
+import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.quests.FailureMode
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.quests.QuestDatePickerContent
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.quests.QuickDaysContent
+import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.quests.StepQuestFailureMode
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.quests.StepQuestNameAndIcon
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.quests.StepNavigationBar
 import com.rywent.pixelhabit.presentation.screens.habits.creationPanels.quests.StepQuestDescription
@@ -38,7 +40,7 @@ fun CreateQuestPanel(
     onDismiss: () -> Unit,
     onQuestCreated: (QuestData) -> Unit
 ) {
-    val pagerState = rememberPagerState(pageCount = { 4 })
+    val pagerState = rememberPagerState(pageCount = { 5 })
     val coroutineScope = rememberCoroutineScope()
     val currentStep = pagerState.currentPage
 
@@ -48,6 +50,7 @@ fun CreateQuestPanel(
     var selectedColor by remember { mutableStateOf(Color(0xFF6366F1)) }
     var totalDays by remember { mutableIntStateOf(7) }
     var startDate by remember { mutableStateOf(LocalDate.now()) }
+    var failureMode by remember { mutableStateOf(FailureMode.SHIFT) }
 
     var showIconPicker by remember { mutableStateOf(false) }
     var showColorPicker by remember { mutableStateOf(false) }
@@ -86,6 +89,7 @@ fun CreateQuestPanel(
                         0 -> "New Quest"
                         1 -> "Description"
                         2 -> "Duration"
+                        3 -> "Quest Rules"
                         else -> "Ready?"
                     },
                     fontSize = 32.sp,
@@ -100,7 +104,7 @@ fun CreateQuestPanel(
 
             PixelSliderProgress(
                 currentStep = currentStep,
-                totalSteps = 4,
+                totalSteps = 5,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -155,7 +159,13 @@ fun CreateQuestPanel(
                         color = selectedColor
                     )
 
-                    3 -> StepQuestPreview(
+                    3 -> StepQuestFailureMode(
+                        selectedMode = failureMode,
+                        onModeSelected = { failureMode = it },
+                        color = selectedColor
+                    )
+
+                    4 -> StepQuestPreview(
                         name = questName,
                         description = questDescription,
                         icon = selectedIcon,
@@ -181,7 +191,11 @@ fun CreateQuestPanel(
                                     startDate = startDate.format(formatter),
                                     endDate = endDate.format(formatter),
                                     isCompleted = false,
-                                    completionPercent = 0f
+                                    completionPercent = 0f,
+                                    failureMode = failureMode,
+                                    isFailed = false,
+                                    lastCompletionDate = null,
+                                    skippedDays = 0
                                 )
                                 onQuestCreated(quest)
                                 onDismiss()
@@ -193,7 +207,7 @@ fun CreateQuestPanel(
 
             StepNavigationBar(
                 currentStep = currentStep,
-                totalSteps = 4,
+                totalSteps = 5,
                 onNext = {
                     var canProceed = true
 
@@ -232,7 +246,7 @@ fun CreateQuestPanel(
                         }
                     }
 
-                    if (canProceed && currentStep < 3) {
+                    if (canProceed && currentStep < 4) {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(currentStep + 1)
                         }
@@ -323,8 +337,3 @@ fun CreateQuestPanel(
         }
     }
 }
-
-
-
-
-

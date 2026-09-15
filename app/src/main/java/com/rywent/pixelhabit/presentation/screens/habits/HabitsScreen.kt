@@ -37,8 +37,9 @@ import com.rywent.pixelhabit.presentation.components.panels.HabitFormPanel
 import com.rywent.pixelhabit.presentation.components.panels.HabitInfoPanel
 import com.rywent.pixelhabit.presentation.components.panels.LifestyleFormPanel
 import com.rywent.pixelhabit.presentation.components.panels.LifestyleInfoPanel
+import com.rywent.pixelhabit.presentation.components.panels.QuestInfoPanel
 import com.rywent.pixelhabit.presentation.screens.habits.components.FilterPanel
-import com.rywent.pixelhabit.presentation.screens.habits.components.HabitsTabSwitcher
+import com.rywent.pixelhabit.presentation.screens.habits.components.TabSwitcher
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.HabitsSubScreen
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.LifestyleSubScreen
 import com.rywent.pixelhabit.presentation.screens.habits.subScreens.QuestsSubScreen
@@ -84,7 +85,7 @@ fun HabitsScreen(
                 )
                 Spacer(modifier = Modifier.height(15.dp))
 
-                HabitsTabSwitcher(
+                TabSwitcher(
                     tabs = tabs,
                     selectedIndex = uiState.selectedTabIndex,
                     onTabSelected = { index ->
@@ -178,6 +179,8 @@ fun HabitsScreen(
             HabitInfoPanel(
                 habit = uiState.selectedHabit!!,
                 completions = uiState.selectedHabitCompletions,
+                todayFocusSeconds = uiState.selectedHabitTodayFocusSeconds,
+                weeklyFocusSeconds = uiState.selectedHabitWeeklyFocusSeconds,
                 onDismiss = { viewModel.onHabitDetailDismiss() },
                 onEdit = { habit -> viewModel.onHabitEditClick(habit) },
                 onDelete = { habit -> viewModel.onHabitDelete(habit) }
@@ -196,6 +199,16 @@ fun HabitsScreen(
                 weeklyActivity = uiState.lifestyleWeeklyActivity,
                 monthlyGoal = uiState.lifestyleMonthlyGoal,
                 monthlyProgress = uiState.lifestyleMonthlyProgress
+            )
+        }
+
+        // Quest details
+        if (uiState.showQuestDetailsPanel && uiState.selectedQuest != null) {
+            QuestInfoPanel(
+                quest = uiState.selectedQuest!!,
+                onDismiss = { viewModel.onQuestDetailDismiss() },
+                onIncrement = { questId -> viewModel.onIncrementQuestProgress(questId) },
+                onDelete = { quest -> viewModel.onQuestDelete(quest) }
             )
         }
 
@@ -247,3 +260,4 @@ fun HabitsScreen(
         )
     }
 }
+

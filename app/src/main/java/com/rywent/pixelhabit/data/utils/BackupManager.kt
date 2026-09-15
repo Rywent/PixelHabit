@@ -33,7 +33,7 @@ class BackupManager(
     suspend fun exportAllData(): BackupResult = withContext(Dispatchers.IO) {
         try {
             val backupJson = JSONObject().apply {
-                put("version", 2)
+                put("version", 3)
                 put("exportDate", System.currentTimeMillis())
                 put("appVersion", getAppVersion())
 
@@ -134,6 +134,43 @@ class BackupManager(
                         put("userId", quest.userId)
                     }
                 })
+
+                // Focus Sessions
+                put("focusSessions", createJsonArray(
+                    database.focusSessionDao().getAll(defaultUserId).first()
+                ) { session ->
+                    JSONObject().apply {
+                        put("id", session.id)
+                        put("userId", session.userId)
+                        put("habitId", session.habitId)
+                        put("habitName", session.habitName)
+                        put("phase", session.phase)
+                        put("plannedSeconds", session.plannedSeconds)
+                        put("actualSeconds", session.actualSeconds)
+                        put("completed", session.completed)
+                        put("startedAt", session.startedAt)
+                        put("finishedAt", session.finishedAt)
+                        put("date", session.date)
+                    }
+                })
+
+                // Focus Presets
+                put("focusPresets", createJsonArray(
+                    database.focusPresetDao().getAll(defaultUserId).first()
+                ) { preset ->
+                    JSONObject().apply {
+                        put("id", preset.id)
+                        put("userId", preset.userId)
+                        put("name", preset.name)
+                        put("focusMin", preset.focusMin)
+                        put("shortBreakMin", preset.shortBreakMin)
+                        put("longBreakMin", preset.longBreakMin)
+                        put("longBreakEvery", preset.longBreakEvery)
+                        put("stagesJson", preset.stagesJson)
+                        put("isDefault", preset.isDefault)
+                        put("createdAt", preset.createdAt)
+                    }
+                })
             }
 
             val fileName = "pixelhabit_backup_${getCurrentTimestamp()}.json"
@@ -156,6 +193,9 @@ class BackupManager(
             val json = JSONObject(fileContent)
 
             database.withTransaction {
+                database.openHelper.writableDatabase.execSQL("DELETE FROM focus_sessions")
+                database.openHelper.writableDatabase.execSQL("DELETE FROM focus_presets")
+
                 database.habitCompletionDao().deleteAll()
                 database.questDao().deleteAll()
                 database.habitDao().deleteAll()
@@ -163,7 +203,7 @@ class BackupManager(
                 database.userDao().deleteAll()
 
                 // Users
-                json.getJSONArray("users").forEachJSONObject { obj ->
+                json.optJSONArray("users")?.forEachJSONObject { obj ->
                     database.userDao().insertUser(
                         UserEntity(
                             id = obj.getString("id"),
@@ -178,7 +218,7 @@ class BackupManager(
                 }
 
                 // Lifestyles
-                json.getJSONArray("lifestyles").forEachJSONObject { obj ->
+                json.optJSONArray("lifestyles")?.forEachJSONObject { obj ->
                     database.lifestyleDao().insertLifestyle(
                         LifestyleEntity(
                             id = obj.getString("id"),
@@ -195,7 +235,7 @@ class BackupManager(
                 }
 
                 // Habits
-                json.getJSONArray("habits").forEachJSONObject { obj ->
+                json.optJSONArray("habits")?.forEachJSONObject { obj ->
                     database.habitDao().insertHabit(
                         HabitEntity(
                             id = obj.getString("id"),
@@ -225,7 +265,7 @@ class BackupManager(
                 }
 
                 // Habit Completions
-                json.getJSONArray("habitCompletions").forEachJSONObject { obj ->
+                json.optJSONArray("habitCompletions")?.forEachJSONObject { obj ->
                     database.habitCompletionDao().upsertCompletion(
                         HabitCompletionEntity(
                             id = obj.getString("id"),
@@ -239,7 +279,7 @@ class BackupManager(
                 }
 
                 // Quests
-                json.getJSONArray("quests").forEachJSONObject { obj ->
+                json.optJSONArray("quests")?.forEachJSONObject { obj ->
                     database.questDao().insertQuest(
                         QuestEntity(
                             id = obj.getString("id"),
@@ -257,6 +297,43 @@ class BackupManager(
                             createdAt = obj.optLong("createdAt"),
                             updatedAt = obj.optLong("updatedAt"),
                             userId = obj.getString("userId")
+                        )
+                    )
+                }
+
+                // Focus Sessions
+                json.optJSONArray("focusSessions")?.forEachJSONObject { obj ->
+                    database.focusSessionDao().insert(
+                        FocusSessionEntity(
+                            id = obj.getString("id"),
+                            userId = obj.getString("userId"),
+                            habitId = if (obj.has("habitId") && !obj.isNull("habitId")) obj.getString("habitId") else null,
+                            habitName = if (obj.has("habitName") && !obj.isNull("habitName")) obj.getString("habitName") else null,
+                            phase = obj.getString("phase"),
+                            plannedSeconds = obj.getInt("plannedSeconds"),
+                            actualSeconds = obj.getInt("actualSeconds"),
+                            completed = obj.getBoolean("completed"),
+                            startedAt = obj.getLong("startedAt"),
+                            finishedAt = obj.getLong("finishedAt"),
+                            date = obj.getString("date")
+                        )
+                    )
+                }
+
+                // Focus Presets
+                json.optJSONArray("focusPresets")?.forEachJSONObject { obj ->
+                    database.focusPresetDao().insert(
+                        FocusPresetEntity(
+                            id = obj.getString("id"),
+                            userId = obj.getString("userId"),
+                            name = obj.getString("name"),
+                            focusMin = obj.getInt("focusMin"),
+                            shortBreakMin = obj.getInt("shortBreakMin"),
+                            longBreakMin = obj.getInt("longBreakMin"),
+                            longBreakEvery = obj.optInt("longBreakEvery", 4),
+                            stagesJson = if (obj.has("stagesJson") && !obj.isNull("stagesJson")) obj.getString("stagesJson") else null,
+                            isDefault = obj.optBoolean("isDefault", false),
+                            createdAt = obj.optLong("createdAt")
                         )
                     )
                 }

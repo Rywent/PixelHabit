@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
-import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,8 +32,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.rywent.pixelhabit.ui.theme.adaptiveShadowColor
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -44,6 +43,8 @@ import androidx.compose.ui.graphics.Color as ComposeColor
 fun WeekStatistics(
     data: List<DayStat>,
     onWeekClick: () -> Unit,
+    header: String = "Week Statistics",
+    showInfoButton: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -123,26 +124,30 @@ fun WeekStatistics(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Week statistics",
+                text = header,
                 style = MaterialTheme.typography.titleMedium,
                 color = scheme.onSurface
             )
 
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(scheme.primaryContainer.copy(alpha = 0.3f))
-                    .clickable(onClick = onWeekClick),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                    contentDescription = "Open week details",
-                    tint = scheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
+            if(showInfoButton)
+            {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(scheme.primaryContainer.copy(alpha = 0.3f))
+                        .clickable(onClick = onWeekClick),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                        contentDescription = "Open week details",
+                        tint = scheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
+
         }
 
         Column(modifier = Modifier.padding(16.dp)) {
@@ -157,6 +162,7 @@ fun WeekStatistics(
             ) {
                 data.forEachIndexed { index, day ->
                     val isFutureDay = day.value < 0
+                    val showNumber = !isFutureDay && day.value > 0
 
                     val animatedHeight = animatedHeights[index].value.dp
 
@@ -181,12 +187,28 @@ fun WeekStatistics(
                                         Brush.verticalGradient(
                                             colors = listOf(
                                                 scheme.primary,
-                                                scheme.primary.copy(alpha = 0.4f)
+                                                scheme.primary.copy(alpha = 0.6f)
                                             )
                                         )
                                     }
+                                ),
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            if (showNumber && animatedHeight >= 28.dp) {
+                                val barColor = scheme.primary
+                                val textColor = getAdaptiveTextColor(barColor)
+
+                                Text(
+                                    text = day.value.toString(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = textColor,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                                    fontSize = 10.sp,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(bottom = 4.dp)
                                 )
-                        )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(12.dp))
 
@@ -207,6 +229,14 @@ fun WeekStatistics(
     }
 }
 
+
+private fun getAdaptiveTextColor(backgroundColor: Color): Color {
+    val luminance = (0.299 * backgroundColor.red +
+            0.587 * backgroundColor.green +
+            0.114 * backgroundColor.blue)
+
+    return if (luminance > 0.5f) Color.Black else Color.White
+}
 fun ComposeColor.luminance(): Float {
     val r = red
     val g = green
@@ -215,14 +245,14 @@ fun ComposeColor.luminance(): Float {
 }
 
 private fun calculateTargetHeight(day: DayStat, maxValue: Float): Float {
-    val MIN_HEIGHT = 8f
-    val MAX_HEIGHT = 160f
+    val minHeight = 8f
+    val maxHeight = 160f
 
     return when {
-        day.value < 0 -> MIN_HEIGHT
-        maxValue == 0f -> MIN_HEIGHT
-        day.value == 0 -> MIN_HEIGHT
-        else -> (day.value.toFloat() / maxValue) * MAX_HEIGHT
+        day.value < 0 -> minHeight
+        maxValue == 0f -> minHeight
+        day.value == 0 -> minHeight
+        else -> (day.value.toFloat() / maxValue) * maxHeight
     }
 }
 

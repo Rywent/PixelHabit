@@ -9,6 +9,7 @@ object NotificationChannels {
     const val CHANNEL_STREAK = "streak_channel"
     const val CHANNEL_MOTIVATION = "motivation_channel"
 
+    const val CHANNEL_FOCUS = "focus_channel"
     fun createChannels(context: Context) {
         val notificationManager = context.getSystemService(NotificationManager::class.java)
 
@@ -47,6 +48,21 @@ object NotificationChannels {
 
         notificationManager.createNotificationChannels(
             listOf(habitChannel, streakChannel, motivationChannel)
+        )
+
+        val focusChannel = NotificationChannel(
+            CHANNEL_FOCUS,
+            "Focus Timer",
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "Active focus session updates"
+            setShowBadge(false)
+            setSound(null, null)
+            enableVibration(false)
+        }
+
+        notificationManager.createNotificationChannels(
+            listOf(habitChannel, streakChannel, motivationChannel, focusChannel)
         )
     }
 }

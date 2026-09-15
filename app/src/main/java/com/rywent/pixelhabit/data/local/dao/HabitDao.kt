@@ -39,7 +39,9 @@ interface HabitDao {
     @Query("""
         select h.*, 
                coalesce(c.completed, 0) as isCompleted,
-               c.completedAt
+               c.completedAt,
+               c.isPostponed,
+               c.postponeReason
         from habits h
         left join habit_completions c 
             on h.id = c.habitId and c.date = :today
@@ -53,7 +55,10 @@ interface HabitDao {
     @Query("""
     select h.*, 
            coalesce(c.completed, 0) as isCompleted,
-           c.completedAt
+           c.completedAt,
+           coalesce(c.isPostponed, 0) as isPostponed,
+           c.postponeReason
+           
     from habits h
     left join habit_completions c 
         on h.id = c.habitId and c.date = :today
