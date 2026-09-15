@@ -62,16 +62,23 @@ View all lifestyle information and edit it if necessary.
 ## Focus Screen
 Stay in the zone with a **Pomodoro-style timer**, **custom presets**, **ambient sounds**, and **habit linking**. Build deep work sessions that fit your rhythm.
 
-Choose a mode (**Pomodoro**, **Deep Work**, **Flow**, or **Custom**), link a habit for the day, and track progress with a clean circular timer.
+Choose a mode (**Pomodoro**, **Deep Work**, **Flow**, or **Custom**), pick ambient sound, and track progress with a clean circular timer.
 
 <div align="center" style="display: flex; gap: 10px; justify-content: center;">
   <img src="imgs/examples/FocusScreen/FocusScreen.png" width="200" alt="focus-screen">
   <img src="imgs/examples/FocusScreen/FocusSounds.png" width="200" alt="focus-sounds">
-  <img src="imgs/examples/FocusScreen/FocusFullTime.png" width="200" alt="focus-immersive">
+  <img src="imgs/examples/FocusScreen/FocusLinkedHabit.png" width="200" alt="focus-linked-habit">
 </div>
 
+### Immersive Mode
+Go full screen in landscape for a distraction-free session — large timer, quick sound toggle, and play/pause.
+
+<p align="center">
+  <img src="imgs/examples/FocusScreen/FocusFullTime.png" width="560" alt="focus-immersive">
+</p>
+
 ### Timer Presets
-Pick a built-in preset or create your **own multi-stage sessions** with custom focus and break lengths.
+Use built-in presets or create **your own multi-stage sessions** with custom focus and break lengths.
 
 <div align="center" style="display: flex; gap: 10px; justify-content: center;">
   <img src="imgs/examples/FocusScreen/FocusSelectPreset.png" width="200" alt="focus-select-preset">
@@ -80,14 +87,12 @@ Pick a built-in preset or create your **own multi-stage sessions** with custom f
 </div>
 
 ### Link Habits & Recover Sessions
-**Link today’s habit** so focus minutes count toward your stats. If a session was interrupted, you can **resume from the exact time** it was left.
+**Link today’s habit** so focus minutes count in Habits statistics. If the app was closed mid-session, you can **resume from the exact remaining time**.
 
 <div align="center" style="display: flex; gap: 10px; justify-content: center;">
-  <img src="imgs/examples/FocusScreen/FocusLinkedHabit.png" width="200" alt="focus-linked-habit">
   <img src="imgs/examples/FocusScreen/FocusLinkHabitPanel.png" width="200" alt="focus-link-habit-panel">
   <img src="imgs/examples/FocusScreen/FocusSessionInterrupted.png" width="200" alt="focus-session-interrupted">
 </div>
-
 
 ## ✨ Features
 
